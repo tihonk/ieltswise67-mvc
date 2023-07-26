@@ -1,23 +1,20 @@
-package com.ietswise.controllers;
+package com.ietswise.controller;
 
-import com.ietswise.entity.Student;
-import com.ietswise.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Date;
-
 @RestController
+@RequestMapping("/student")
 public class StudentController {
 
     @Autowired
-    private StudentRepository studentRepository;
+    StudentController() {
+    }
 
     @GetMapping("/test")
     public String test() {
-        Student student = new Student(2, new Date());
-        studentRepository.save(student);
         return "Hello";
     }
 }
