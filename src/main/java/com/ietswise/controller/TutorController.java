@@ -4,6 +4,7 @@ import com.ietswise.entity.Event;
 import com.ietswise.service.GoogleEventsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,16 +16,16 @@ import static java.time.ZonedDateTime.now;
 @RequestMapping("/tutor")
 public class TutorController {
 
-    private GoogleEventsService googleEventsService;
+    private final GoogleEventsService googleEventsService;
 
     @Autowired
     TutorController(GoogleEventsService googleEventsService) {
         this.googleEventsService = googleEventsService;
     }
 
-    @GetMapping("/events")
-    public List<Event> getEvents() {
-        List<Event> events = googleEventsService.getEvents("ieltswise67@gmail.com");
+    @GetMapping("/events/{tutorId}")
+    public List<Event> getEvents(@PathVariable("tutorId") String tutorId) {
+        final List<Event> events = googleEventsService.getEvents(tutorId);
         return events.stream().filter(ev -> ev.getEndDate().isAfter(now())).toList();
     }
 }
