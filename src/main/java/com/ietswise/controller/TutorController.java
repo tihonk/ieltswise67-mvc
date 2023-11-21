@@ -1,7 +1,7 @@
 package com.ietswise.controller;
 
 import com.ietswise.entity.Event;
-import com.ietswise.entity.EventsByYearAndMonth;
+import com.ietswise.entity.freeAndBusyHoursOfTheDay;
 import com.ietswise.service.GoogleEventsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +31,7 @@ public class TutorController {
     }
 
     @GetMapping("/tutor/events/{tutorId}/{year}/{month}")
-    public List<EventsByYearAndMonth> getEventsByYearAndMonth(
+    public List<freeAndBusyHoursOfTheDay> getEventsByYearAndMonth(
             @PathVariable String tutorId,
             @PathVariable int year,
             @PathVariable int month) {

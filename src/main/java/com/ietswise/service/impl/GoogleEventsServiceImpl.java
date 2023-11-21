@@ -1,7 +1,7 @@
 package com.ietswise.service.impl;
 
 import com.ietswise.entity.Event;
-import com.ietswise.entity.EventsByYearAndMonth;
+import com.ietswise.entity.freeAndBusyHoursOfTheDay;
 import com.ietswise.service.GoogleEventsService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -93,7 +93,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return events;
     }
 
-    private ZonedDateTime extractDate(JSONObject dateTime) {  // Извлечение даты и времени из JSON объекта и преобразование в ZonedDateTime
+    private ZonedDateTime extractDate(JSONObject dateTime) {
         if (dateTime.toMap().get(JSON_DATETIME) != null) {
             DateTimeFormatter formatter = new DateTimeFormatterBuilder()
                     .append(ISO_DATE_TIME)
@@ -108,21 +108,12 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
     //    ===============================================================================================    //
     @Override
-    public List<EventsByYearAndMonth> getEventsByYearAndMonth(String tutorId, int year, int month) {
+    public List<freeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month) {
         try {
             ZonedDateTime startOfMonth = YearMonth.of(year, month).atDay(1).atStartOfDay(ZoneId.systemDefault());
             ZonedDateTime endOfMonth = YearMonth.of(year, month).atEndOfMonth().atStartOfDay(ZoneId.systemDefault());
 
-            String formattedTimeMin = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(startOfMonth);
-            String formattedTimeMax = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(endOfMonth);
-
-            String encodedTimeMin = URLEncoder.encode(formattedTimeMin, StandardCharsets.UTF_8);
-            String encodedTimeMax = URLEncoder.encode(formattedTimeMax, StandardCharsets.UTF_8);
-
-            String apiUrl = "https://www.googleapis.com/calendar/v3/calendars/" + tutorId + "/events";
-            String fullUrl = apiUrl + "?timeMin=" + encodedTimeMin + "&timeMax=" + encodedTimeMax + "&key=" + googleCredentialKey;
-
-            URL obj = new URL(fullUrl);
+            URL obj = new URL(createUrl(tutorId, startOfMonth, endOfMonth));
 
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
@@ -134,19 +125,25 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
                 response.append(inputLine);
             }
             in.close();
-
             JSONObject myResponse = new JSONObject(response.toString());
             return findAllEventsByYearAndMonth(myResponse.getJSONArray("items"), startOfMonth, endOfMonth);
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private List<EventsByYearAndMonth> findAllEventsByYearAndMonth(JSONArray jsonArray, ZonedDateTime startOfMonth, ZonedDateTime endOfMonth) {
+    private String createUrl(String tutorId, ZonedDateTime startOfMonth, ZonedDateTime endOfMonth) {
+        String formattedTimeMin = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(startOfMonth);
+        String formattedTimeMax = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(endOfMonth);
+        String encodedTimeMin = URLEncoder.encode(formattedTimeMin, StandardCharsets.UTF_8);
+        String encodedTimeMax = URLEncoder.encode(formattedTimeMax, StandardCharsets.UTF_8);
+        String apiUrl = "https://www.googleapis.com/calendar/v3/calendars/" + tutorId + "/events";
+        return apiUrl + "?timeMin=" + encodedTimeMin + "&timeMax=" + encodedTimeMax + "&key=" + googleCredentialKey;
+    }
 
-        TreeMap<Long, TreeMap<String, Boolean>> datesTimeStatus = new TreeMap<>();
-        TreeMap<String, Boolean> times;
+    private List<freeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray, ZonedDateTime startOfMonth, ZonedDateTime endOfMonth) {
+        TreeMap<Long, TreeMap<String, Boolean>> dateClockStatus = new TreeMap<>();
+        TreeMap<String, Boolean> hourStatus;
 
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject eventItem = jsonArray.getJSONObject(i);
@@ -161,32 +158,28 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
                 LocalTime localTimeStart = Objects.requireNonNull(eventStartDate).toLocalTime();
                 LocalTime localTimeEnd = Objects.requireNonNull(eventEndDate).toLocalTime();
 
-                times = new TreeMap<>();
-
+                hourStatus = new TreeMap<>();
                 while (!localTimeStart.withMinute(0).isAfter(localTimeEnd.withMinute(0))) {
                     String formattedTime = localTimeStart.format(DateTimeFormatter.ofPattern("HH:00"));
-                    times.put(formattedTime, true);
+                    hourStatus.put(formattedTime, true);
                     localTimeStart = localTimeStart.plusHours(1);
                 }
                 Instant instant = eventStartDate.with(LocalTime.MIDNIGHT).toInstant();
                 Long day = instant.toEpochMilli();
-
-                if (datesTimeStatus.containsKey(day)) {
-                    TreeMap<String, Boolean> existingValuesTime = datesTimeStatus.get(day);
-                    existingValuesTime.putAll(times);
+                if (dateClockStatus.containsKey(day)) {
+                    TreeMap<String, Boolean> existingValuesTime = dateClockStatus.get(day);
+                    existingValuesTime.putAll(hourStatus);
                 } else {
-                    datesTimeStatus.put(day, times);
+                    dateClockStatus.put(day, hourStatus);
                 }
             }
         }
 
         for (ZonedDateTime dateOne = startOfMonth.with(LocalTime.MIDNIGHT); !dateOne.isAfter(endOfMonth); dateOne = dateOne.plusDays(1)) {
-
             Instant instant = dateOne.toInstant();
-            Long proverkaData = instant.toEpochMilli();
-
-            if (datesTimeStatus.containsKey(proverkaData)) {
-                TreeMap<String, Boolean> existingValuesTime = datesTimeStatus.get(proverkaData);
+            Long dateToCheck = instant.toEpochMilli();
+            if (dateClockStatus.containsKey(dateToCheck)) {
+                TreeMap<String, Boolean> existingValuesTime = dateClockStatus.get(dateToCheck);
                 for (int i = 0; i < 24; i++) {
                     LocalTime time = LocalTime.of(i, 0);
                     String formattedTime = time.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -195,47 +188,41 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
                     }
                 }
             } else {
-                times = new TreeMap<>();
+                hourStatus = new TreeMap<>();
                 for (int i = 0; i < 24; i++) {
                     LocalTime time = LocalTime.of(i, 0);
                     String formattedTime = time.format(DateTimeFormatter.ofPattern("HH:mm"));
-                    times.put(formattedTime, false);
+                    hourStatus.put(formattedTime, false);
                 }
-                datesTimeStatus.put(proverkaData, times);
+                dateClockStatus.put(dateToCheck, hourStatus);
             }
         }
-
-        return extractEventsByYearAndMonth(datesTimeStatus);
+        return getAllHoursAndTheirStatusForAllDaysOfTheMonth(dateClockStatus);
     }
 
+    private List<freeAndBusyHoursOfTheDay> getAllHoursAndTheirStatusForAllDaysOfTheMonth(TreeMap<Long, TreeMap<String, Boolean>> dateClockStatus) {
+        List<freeAndBusyHoursOfTheDay> eventsOfMonth = new ArrayList<>();
+        freeAndBusyHoursOfTheDay eventsOfDay;
+        List<Map<String, Object>> informationAboutAllHoursOfTheDay;
+        Map<String, Object> hourStatus;
 
-    private List<EventsByYearAndMonth> extractEventsByYearAndMonth(TreeMap<Long, TreeMap<String, Boolean>> datesTimeStatus) {
-
-        List<EventsByYearAndMonth> events = new ArrayList<>();
-        EventsByYearAndMonth eventsByYearAndMonth;
-        List<Map<String, Object>> list;
-        Map<String, Object> oneHour;
-
-        for (Map.Entry<Long, TreeMap<String, Boolean>> entry1 : datesTimeStatus.entrySet()) {
-            Long key1 = entry1.getKey();
-            TreeMap<String, Boolean> values1 = entry1.getValue();
-            list = new ArrayList<>();
-            for (Map.Entry<String, Boolean> entry2 : values1.entrySet()) {
-
-                String key2 = entry2.getKey();
-                Boolean value2 = entry2.getValue();
-                oneHour = new HashMap<>();
-                oneHour.put("time", key2);
-                oneHour.put("occupied", value2);
-                list.add(oneHour);
+        for (Map.Entry<Long, TreeMap<String, Boolean>> entry1 : dateClockStatus.entrySet()) {
+            Long dateKey = entry1.getKey();
+            TreeMap<String, Boolean> hoursAndTheirStatus = entry1.getValue();
+            informationAboutAllHoursOfTheDay = new ArrayList<>();
+            for (Map.Entry<String, Boolean> entry2 : hoursAndTheirStatus.entrySet()) {
+                String hourKey = entry2.getKey();
+                Boolean status = entry2.getValue();
+                hourStatus = new HashMap<>();
+                hourStatus.put("time", hourKey);
+                hourStatus.put("occupied", status);
+                informationAboutAllHoursOfTheDay.add(hourStatus);
             }
-
-            eventsByYearAndMonth = new EventsByYearAndMonth();
-            eventsByYearAndMonth.setDate(key1);
-            eventsByYearAndMonth.setTime(list);
-            events.add(eventsByYearAndMonth);
+            eventsOfDay = new freeAndBusyHoursOfTheDay();
+            eventsOfDay.setDate(dateKey);
+            eventsOfDay.setTime(informationAboutAllHoursOfTheDay);
+            eventsOfMonth.add(eventsOfDay);
         }
-
-        return events;
+        return eventsOfMonth;
     }
 }
