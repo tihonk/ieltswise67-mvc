@@ -1,6 +1,7 @@
 package com.ietswise.controller;
 
 import com.ietswise.entity.Event;
+import com.ietswise.entity.EventsByYearAndMonth;
 import com.ietswise.service.GoogleEventsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,5 +28,13 @@ public class TutorController {
     public List<Event> getEvents(@PathVariable("tutorId") String tutorId) {
         final List<Event> events = googleEventsService.getEvents(tutorId);
         return events.stream().filter(ev -> ev.getEndDate().isAfter(now())).toList();
+    }
+
+    @GetMapping("/tutor/events/{tutorId}/{year}/{month}")
+    public List<EventsByYearAndMonth> getEventsByYearAndMonth(
+            @PathVariable String tutorId,
+            @PathVariable int year,
+            @PathVariable int month) {
+        return googleEventsService.getEventsByYearAndMonth(tutorId, year, month);
     }
 }
