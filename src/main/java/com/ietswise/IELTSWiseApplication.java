@@ -8,6 +8,5 @@ public class IELTSWiseApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(IELTSWiseApplication.class, args);
-        System.out.println("Hello!");
     }
 }

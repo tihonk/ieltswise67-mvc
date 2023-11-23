@@ -1,7 +1,7 @@
 package com.ietswise.service.impl;
 
 import com.ietswise.entity.Event;
-import com.ietswise.entity.freeAndBusyHoursOfTheDay;
+import com.ietswise.entity.FreeAndBusyHoursOfTheDay;
 import com.ietswise.service.GoogleEventsService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -106,9 +106,8 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return null;
     }
 
-    //    ===============================================================================================    //
     @Override
-    public List<freeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month) {
+    public List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month) {
         try {
             ZonedDateTime startOfMonth = YearMonth.of(year, month).atDay(1).atStartOfDay(ZoneId.systemDefault());
             ZonedDateTime endOfMonth = YearMonth.of(year, month).atEndOfMonth().atStartOfDay(ZoneId.systemDefault());
@@ -141,7 +140,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return apiUrl + "?timeMin=" + encodedTimeMin + "&timeMax=" + encodedTimeMax + "&key=" + googleCredentialKey;
     }
 
-    private List<freeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray, ZonedDateTime startOfMonth, ZonedDateTime endOfMonth) {
+    private List<FreeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray, ZonedDateTime startOfMonth, ZonedDateTime endOfMonth) {
         TreeMap<Long, TreeMap<String, Boolean>> dateClockStatus = new TreeMap<>();
         TreeMap<String, Boolean> hourStatus;
 
@@ -200,9 +199,9 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return getAllHoursAndTheirStatusForAllDaysOfTheMonth(dateClockStatus);
     }
 
-    private List<freeAndBusyHoursOfTheDay> getAllHoursAndTheirStatusForAllDaysOfTheMonth(TreeMap<Long, TreeMap<String, Boolean>> dateClockStatus) {
-        List<freeAndBusyHoursOfTheDay> eventsOfMonth = new ArrayList<>();
-        freeAndBusyHoursOfTheDay eventsOfDay;
+    private List<FreeAndBusyHoursOfTheDay> getAllHoursAndTheirStatusForAllDaysOfTheMonth(TreeMap<Long, TreeMap<String, Boolean>> dateClockStatus) {
+        List<FreeAndBusyHoursOfTheDay> eventsOfMonth = new ArrayList<>();
+        FreeAndBusyHoursOfTheDay eventsOfDay;
         List<Map<String, Object>> informationAboutAllHoursOfTheDay;
         Map<String, Object> hourStatus;
 
@@ -218,7 +217,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
                 hourStatus.put("occupied", status);
                 informationAboutAllHoursOfTheDay.add(hourStatus);
             }
-            eventsOfDay = new freeAndBusyHoursOfTheDay();
+            eventsOfDay = new FreeAndBusyHoursOfTheDay();
             eventsOfDay.setDate(dateKey);
             eventsOfDay.setTime(informationAboutAllHoursOfTheDay);
             eventsOfMonth.add(eventsOfDay);

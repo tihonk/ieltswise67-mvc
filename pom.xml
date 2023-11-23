@@ -31,16 +31,11 @@
     </properties>
 
     <dependencies>
-
-        <!--Предоставляет необходимые зависимости для разработки веб-приложений,
-      включая встроенный сервер Tomcat и библиотеки для обработки HTTP-запросов и создания веб-страниц.-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!--Обеспечивает интеграцию с базами данных через JDBC (Java Database Connectivity),
-        включая настройку соединений с базой данных и выполнение SQL-запросов-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -124,5 +119,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

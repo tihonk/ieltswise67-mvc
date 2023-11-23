@@ -8,7 +8,7 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-public class freeAndBusyHoursOfTheDay {
+public class FreeAndBusyHoursOfTheDay {
     private Long date;
     private List<Map<String, Object>> time;
 }
