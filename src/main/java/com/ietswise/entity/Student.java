@@ -13,7 +13,6 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Student {
-
     @Id
     private long id;
     private Date joinedDate;
