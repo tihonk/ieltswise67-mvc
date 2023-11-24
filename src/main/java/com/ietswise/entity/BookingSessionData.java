@@ -12,5 +12,6 @@ public class BookingSessionData {
     private String tutorEmail;
     private String tutorCode;
     private String studentEmail;
-    private ZonedDateTime startDate;
+    private String startDate;
+    private String endDate;
 }
