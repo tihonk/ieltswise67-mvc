@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,8 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -30,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
+import static java.time.YearMonth.of;
 import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.parse;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
@@ -59,20 +59,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         try {
             URL obj = new URL("https://www.googleapis.com/calendar/v3/calendars/" + tutorID
                     + "/events?key=" + googleCredentialKey);
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", USER_AGENT);
-            int responseCode = con.getResponseCode();
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            JSONObject myResponse = new JSONObject(response.toString());
-            return extractEvents(myResponse.getJSONArray("items"));
+            return extractEvents(createJSONObjectResponse(obj).getJSONArray("items"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -80,7 +67,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
     private List<Event> extractEvents(JSONArray eventItems) {
         List<Event> events = new ArrayList<>();
-        for (int i=0; i < eventItems.length(); i++) {
+        for (int i = 0; i < eventItems.length(); i++) {
             JSONObject eventItem = eventItems.getJSONObject(i);
             if (!eventItem.getString(JSON_STATUS).equals(STATUS_CANCELED)) {
                 JSONObject start = eventItem.getJSONObject(JSON_START);
@@ -98,7 +85,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
     }
 
     private ZonedDateTime extractDate(JSONObject dateTime) {
-        if(dateTime.toMap().get(JSON_DATETIME) != null) {
+        if (dateTime.toMap().get(JSON_DATETIME) != null) {
             DateTimeFormatter formatter = new DateTimeFormatterBuilder()
                     .append(ISO_DATE_TIME)
                     .toFormatter(ROOT);
@@ -110,45 +97,35 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return null;
     }
 
-    /**
-     * Method for getting all free and busy hours of all days of the month
-     * @param tutorId tutor's email
-     * @param year year
-     * @param month month number
-     * @return List<FreeAndBusyHoursOfTheDay>
-     */
     @Override
     public List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month) {
         try {
-            ZonedDateTime startOfMonth = YearMonth.of(year, month).atDay(1).atStartOfDay(ZoneId.systemDefault());
-            ZonedDateTime endOfMonth = YearMonth.of(year, month).atEndOfMonth().atStartOfDay(ZoneId.systemDefault());
+            ZonedDateTime startOfMonth = of(year, month).atDay(1).atStartOfDay(systemDefault());
+            ZonedDateTime endOfMonth = of(year, month).atEndOfMonth().atStartOfDay(systemDefault());
 
             URL obj = new URL(createUrl(tutorId, startOfMonth, endOfMonth));
 
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", USER_AGENT);
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            JSONObject myResponse = new JSONObject(response.toString());
-            return findAllEventsByYearAndMonth(myResponse.getJSONArray("items"), startOfMonth, endOfMonth);
+            return findAllEventsByYearAndMonth(createJSONObjectResponse(obj).getJSONArray("items"), startOfMonth,
+                    endOfMonth);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * Method for generating url addresses
-     * @param tutorId tutor's email
-     * @param startOfMonth month start date
-     * @param endOfMonth month end date
-     * @return URL for receiving all events for a certain period of time at a certain email address
-     */
+    private JSONObject createJSONObjectResponse(URL obj) throws IOException {
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("GET");
+        con.setRequestProperty("User-Agent", USER_AGENT);
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        return new JSONObject(response.toString());
+    }
+
     private String createUrl(String tutorId, ZonedDateTime startOfMonth, ZonedDateTime endOfMonth) {
         String formattedTimeMin = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(startOfMonth);
         String formattedTimeMax = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(endOfMonth);
@@ -158,13 +135,8 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return apiUrl + "?timeMin=" + encodedTimeMin + "&timeMax=" + encodedTimeMax + "&key=" + googleCredentialKey;
     }
 
-    /**
-     * @param jsonArray JSON array with event data
-     * @param startOfMonth month start date
-     * @param endOfMonth month end date
-     * @return List<FreeAndBusyHoursOfTheDay>
-     */
-    private List<FreeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray, ZonedDateTime startOfMonth, ZonedDateTime endOfMonth) {
+    private List<FreeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray, ZonedDateTime startOfMonth,
+                                                                       ZonedDateTime endOfMonth) {
         TreeMap<Long, TreeMap<String, Boolean>> dateClockStatus = new TreeMap<>();
         TreeMap<String, Boolean> hourStatus;
 
@@ -198,7 +170,8 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
             }
         }
 
-        for (ZonedDateTime dateOne = startOfMonth.with(LocalTime.MIDNIGHT); !dateOne.isAfter(endOfMonth); dateOne = dateOne.plusDays(1)) {
+        for (ZonedDateTime dateOne = startOfMonth.with(LocalTime.MIDNIGHT); !dateOne.isAfter(endOfMonth);
+             dateOne = dateOne.plusDays(1)) {
             Instant instant = dateOne.toInstant();
             Long dateToCheck = instant.toEpochMilli();
             if (dateClockStatus.containsKey(dateToCheck)) {
@@ -223,12 +196,8 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return getAllHoursAndTheirStatusForAllDaysOfTheMonth(dateClockStatus);
     }
 
-    /**
-     * Method for creating instances of the FreeAndBusyHoursOfTheDay object and adding it to the list
-     * @param dateClockStatus dates of the month and their corresponding hours of the day with the status
-     * @return List<FreeAndBusyHoursOfTheDay>
-     */
-    private List<FreeAndBusyHoursOfTheDay> getAllHoursAndTheirStatusForAllDaysOfTheMonth(TreeMap<Long, TreeMap<String, Boolean>> dateClockStatus) {
+    private List<FreeAndBusyHoursOfTheDay> getAllHoursAndTheirStatusForAllDaysOfTheMonth(TreeMap<Long, TreeMap<String,
+            Boolean>> dateClockStatus) {
         List<FreeAndBusyHoursOfTheDay> eventsOfMonth = new ArrayList<>();
         FreeAndBusyHoursOfTheDay eventsOfDay;
         List<Map<String, Object>> informationAboutAllHoursOfTheDay;
