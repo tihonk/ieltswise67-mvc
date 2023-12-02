@@ -12,7 +12,10 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.*;
 import com.ietswise.entity.BookingSessionData;
+import com.ietswise.entity.UsedTrialLessons;
+import com.ietswise.repository.TrialPeriod;
 import com.ietswise.service.BookingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
@@ -20,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.load;
@@ -36,8 +40,14 @@ public class BookingServiceImpl implements BookingService {
     private static final List<String> SCOPES = singletonList(CALENDAR);
     private static final String TOKENS_DIRECTORY_PATH = "src/main/resources/tokens";
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+    private final TrialPeriod trialPeriodRepository;
 
-    public String bookSession(final BookingSessionData sessionData) {
+    @Autowired
+    public BookingServiceImpl(TrialPeriod trialPeriodRepository) {
+        this.trialPeriodRepository = trialPeriodRepository;
+    }
+
+    private String bookSession(final BookingSessionData sessionData) {
         // TODO: Add logs about event creation
         try {
             final Event event = prepareAndSendEvent(sessionData);
@@ -45,6 +55,37 @@ public class BookingServiceImpl implements BookingService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    public String bookTrialSession(BookingSessionData sessionData) {
+        String studentEmail = sessionData.getStudentEmail();
+        if (studentAlreadyUsedTrialLesson(studentEmail)) {
+            throw new RuntimeException("User with ID " + studentEmail + " has already used a trial lesson");
+        } else {
+            String htmlLink = bookSession(sessionData);
+            if (htmlLink != null) {
+                addStudentToDatabase(studentEmail);
+            }
+            return htmlLink;
+        }
+    }
+
+    @Override
+    public String bookRegularSession(BookingSessionData sessionData) {
+        return bookSession(sessionData);
+    }
+
+    private boolean studentAlreadyUsedTrialLesson(String studentEmail) {
+        UsedTrialLessons student = trialPeriodRepository.findByEmail(studentEmail);
+        return student != null;
+    }
+
+    private void addStudentToDatabase(String email) {
+        UsedTrialLessons student = new UsedTrialLessons();
+        student.setEmail(email);
+        student.setCreated(LocalDateTime.now());
+        trialPeriodRepository.save(student);
     }
 
     private Event prepareAndSendEvent(final BookingSessionData sessionData) throws GeneralSecurityException, IOException {

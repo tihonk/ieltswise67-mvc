@@ -21,8 +21,13 @@ public class StudentController {
         this.calendarMailService = calendarMailService;
     }
 
-    @PostMapping(value = "/booksession", consumes={APPLICATION_JSON_VALUE})
-    public String bookSession(@RequestBody BookingSessionData sessionData) {
-        return calendarMailService.bookSession(sessionData);
+    @PostMapping(value = "/bookTrialSession", consumes={APPLICATION_JSON_VALUE})
+    public String bookTrialSession(@RequestBody BookingSessionData sessionData) {
+        return calendarMailService.bookTrialSession(sessionData);
+    }
+
+    @PostMapping(value = "/bookRegularSession", consumes={APPLICATION_JSON_VALUE})
+    public String bookRegularSession(@RequestBody BookingSessionData sessionData) {
+        return calendarMailService.bookRegularSession(sessionData);
     }
 }
