@@ -12,8 +12,8 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.*;
 import com.ietswise.entity.BookingSessionData;
-import com.ietswise.entity.UsedTrialLessons;
-import com.ietswise.repository.TrialSessions;
+import com.ietswise.entity.StudentUsedTrial;
+import com.ietswise.repository.StudentUsedTrialRepository;
 import com.ietswise.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +30,7 @@ import static com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.l
 import static com.google.api.client.googleapis.javanet.GoogleNetHttpTransport.newTrustedTransport;
 import static com.google.api.client.json.gson.GsonFactory.getDefaultInstance;
 import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -40,11 +41,30 @@ public class BookingServiceImpl implements BookingService {
     private static final List<String> SCOPES = singletonList(CALENDAR);
     private static final String TOKENS_DIRECTORY_PATH = "src/main/resources/tokens";
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-    private final TrialSessions trialSessionsRepository;
+    private final StudentUsedTrialRepository studentUsedTrialRepository;
 
     @Autowired
-    public BookingServiceImpl(TrialSessions trialSessionsRepository) {
-        this.trialSessionsRepository = trialSessionsRepository;
+    public BookingServiceImpl(StudentUsedTrialRepository trialSessionsRepository) {
+        this.studentUsedTrialRepository = trialSessionsRepository;
+    }
+
+    @Override
+    public String bookTrialSession(final BookingSessionData sessionData) {
+        final String studentEmail = sessionData.getStudentEmail();
+        if (isUsedTrialLessonByStudent(studentEmail)) {
+            throw new RuntimeException(format("User with ID: %s has already used a trial lesson", studentEmail));
+        } else {
+            final String eventLink = bookSession(sessionData);
+            if (eventLink != null) {
+                saveStudentUsedTrialLesson(studentEmail);
+            }
+            return eventLink;
+        }
+    }
+
+    @Override
+    public String bookRegularSession(BookingSessionData sessionData) {
+        return bookSession(sessionData);
     }
 
     private String bookSession(final BookingSessionData sessionData) {
@@ -57,35 +77,16 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    @Override
-    public String bookTrialSession(BookingSessionData sessionData) {
-        String studentEmail = sessionData.getStudentEmail();
-        if (isUsedTrialLessonByStudent(studentEmail)) {
-            throw new RuntimeException("User with ID " + studentEmail + " has already used a trial lesson");
-        } else {
-            String htmlLink = bookSession(sessionData);
-            if (htmlLink != null) {
-                saveStudentUsedTrialLesson(studentEmail);
-            }
-            return htmlLink;
-        }
-    }
-
-    @Override
-    public String bookRegularSession(BookingSessionData sessionData) {
-        return bookSession(sessionData);
-    }
-
     private boolean isUsedTrialLessonByStudent(String studentEmail) {
-        UsedTrialLessons student = trialSessionsRepository.findByEmail(studentEmail);
+        StudentUsedTrial student = studentUsedTrialRepository.findByEmail(studentEmail);
         return student != null;
     }
 
     private void saveStudentUsedTrialLesson(String email) {
-        UsedTrialLessons student = new UsedTrialLessons();
+        StudentUsedTrial student = new StudentUsedTrial();
         student.setEmail(email);
         student.setCreated(LocalDateTime.now());
-        trialSessionsRepository.save(student);
+        studentUsedTrialRepository.save(student);
     }
 
     private Event prepareAndSendEvent(final BookingSessionData sessionData) throws GeneralSecurityException, IOException {

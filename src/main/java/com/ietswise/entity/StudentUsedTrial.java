@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "Studets_used_trial_lesson")
-public class UsedTrialLessons {
+@Table(name = "Student_used_trial")
+public class StudentUsedTrial {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true)
