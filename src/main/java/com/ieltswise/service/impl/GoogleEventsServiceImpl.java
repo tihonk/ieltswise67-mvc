@@ -1,8 +1,8 @@
-package com.ietswise.service.impl;
+package com.ieltswise.service.impl;
 
-import com.ietswise.entity.Event;
-import com.ietswise.entity.FreeAndBusyHoursOfTheDay;
-import com.ietswise.service.GoogleEventsService;
+import com.ieltswise.entity.Event;
+import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.service.GoogleEventsService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;

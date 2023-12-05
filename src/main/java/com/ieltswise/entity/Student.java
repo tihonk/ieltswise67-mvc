@@ -1,4 +1,4 @@
-package com.ietswise.entity;
+package com.ieltswise.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

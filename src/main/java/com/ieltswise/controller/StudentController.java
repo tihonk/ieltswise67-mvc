@@ -1,7 +1,7 @@
-package com.ietswise.controller;
+package com.ieltswise.controller;
 
-import com.ietswise.entity.BookingSessionData;
-import com.ietswise.service.BookingService;
+import com.ieltswise.entity.BookingSessionData;
+import com.ieltswise.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;

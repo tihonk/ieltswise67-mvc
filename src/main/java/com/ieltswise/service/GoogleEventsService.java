@@ -1,9 +1,9 @@
-package com.ietswise.service;
+package com.ieltswise.service;
 
 
 
-import com.ietswise.entity.Event;
-import com.ietswise.entity.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.entity.Event;
+import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
 
 import java.util.List;
 

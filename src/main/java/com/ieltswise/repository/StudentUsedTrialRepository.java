@@ -1,6 +1,6 @@
-package com.ietswise.repository;
+package com.ieltswise.repository;
 
-import com.ietswise.entity.StudentUsedTrial;
+import com.ieltswise.entity.StudentUsedTrial;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StudentUsedTrialRepository extends JpaRepository<StudentUsedTrial, Long> {
