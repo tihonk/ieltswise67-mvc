@@ -1,8 +1,8 @@
-package com.ietswise.controller;
+package com.ieltswise.controller;
 
-import com.ietswise.entity.Event;
-import com.ietswise.entity.FreeAndBusyHoursOfTheDay;
-import com.ietswise.service.GoogleEventsService;
+import com.ieltswise.entity.Event;
+import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.service.GoogleEventsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

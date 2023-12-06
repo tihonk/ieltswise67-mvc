@@ -1,4 +1,4 @@
-package com.ietswise.service.impl;
+package com.ieltswise.service.impl;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -11,10 +11,10 @@ import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.*;
-import com.ietswise.entity.BookingSessionData;
-import com.ietswise.entity.StudentUsedTrial;
-import com.ietswise.repository.StudentUsedTrialRepository;
-import com.ietswise.service.BookingService;
+import com.ieltswise.entity.BookingSessionData;
+import com.ieltswise.entity.StudentUsedTrial;
+import com.ieltswise.repository.StudentUsedTrialRepository;
+import com.ieltswise.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

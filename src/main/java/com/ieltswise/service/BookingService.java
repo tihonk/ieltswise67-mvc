@@ -1,6 +1,6 @@
-package com.ietswise.service;
+package com.ieltswise.service;
 
-import com.ietswise.entity.BookingSessionData;
+import com.ieltswise.entity.BookingSessionData;
 
 public interface BookingService {
     /**
