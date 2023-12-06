@@ -12,7 +12,10 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.*;
 import com.ietswise.entity.BookingSessionData;
+import com.ietswise.entity.StudentUsedTrial;
+import com.ietswise.repository.StudentUsedTrialRepository;
 import com.ietswise.service.BookingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
@@ -20,12 +23,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.load;
 import static com.google.api.client.googleapis.javanet.GoogleNetHttpTransport.newTrustedTransport;
 import static com.google.api.client.json.gson.GsonFactory.getDefaultInstance;
 import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -36,8 +41,33 @@ public class BookingServiceImpl implements BookingService {
     private static final List<String> SCOPES = singletonList(CALENDAR);
     private static final String TOKENS_DIRECTORY_PATH = "src/main/resources/tokens";
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+    private final StudentUsedTrialRepository studentUsedTrialRepository;
 
-    public String bookSession(final BookingSessionData sessionData) {
+    @Autowired
+    public BookingServiceImpl(StudentUsedTrialRepository trialSessionsRepository) {
+        this.studentUsedTrialRepository = trialSessionsRepository;
+    }
+
+    @Override
+    public String bookTrialSession(final BookingSessionData sessionData) {
+        final String studentEmail = sessionData.getStudentEmail();
+        if (isUsedTrialLessonByStudent(studentEmail)) {
+            throw new RuntimeException(format("User with ID: %s has already used a trial lesson", studentEmail));
+        } else {
+            final String eventLink = bookSession(sessionData);
+            if (eventLink != null) {
+                saveStudentUsedTrialLesson(studentEmail);
+            }
+            return eventLink;
+        }
+    }
+
+    @Override
+    public String bookRegularSession(BookingSessionData sessionData) {
+        return bookSession(sessionData);
+    }
+
+    private String bookSession(final BookingSessionData sessionData) {
         // TODO: Add logs about event creation
         try {
             final Event event = prepareAndSendEvent(sessionData);
@@ -45,6 +75,18 @@ public class BookingServiceImpl implements BookingService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private boolean isUsedTrialLessonByStudent(String studentEmail) {
+        StudentUsedTrial student = studentUsedTrialRepository.findByEmail(studentEmail);
+        return student != null;
+    }
+
+    private void saveStudentUsedTrialLesson(String email) {
+        StudentUsedTrial student = new StudentUsedTrial();
+        student.setEmail(email);
+        student.setCreated(LocalDateTime.now());
+        studentUsedTrialRepository.save(student);
     }
 
     private Event prepareAndSendEvent(final BookingSessionData sessionData) throws GeneralSecurityException, IOException {
