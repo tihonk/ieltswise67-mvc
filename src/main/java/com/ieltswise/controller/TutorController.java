@@ -4,10 +4,8 @@ import com.ieltswise.entity.Event;
 import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
 import com.ieltswise.service.GoogleEventsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,17 +22,20 @@ public class TutorController {
         this.googleEventsService = googleEventsService;
     }
 
+    @CrossOrigin(origins = "*")
     @GetMapping("/events/{tutorId}")
-    public List<Event> getEvents(@PathVariable("tutorId") String tutorId) {
+    public ResponseEntity<List<Event>> getEvents(@PathVariable("tutorId") String tutorId) {
         final List<Event> events = googleEventsService.getEvents(tutorId);
-        return events.stream().filter(ev -> ev.getEndDate().isAfter(now())).toList();
+        final List<Event> futureEvents = events.stream().filter(ev -> ev.getEndDate().isAfter(now())).toList();
+        return ResponseEntity.ok(futureEvents);
     }
 
+    @CrossOrigin(origins = "*")
     @GetMapping("/events/{tutorId}/{year}/{month}")
-    public List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(
+    public ResponseEntity<List<FreeAndBusyHoursOfTheDay>> getEventsByYearAndMonth(
             @PathVariable String tutorId,
             @PathVariable int year,
             @PathVariable int month) {
-        return googleEventsService.getEventsByYearAndMonth(tutorId, year, month);
+        return ResponseEntity.ok(googleEventsService.getEventsByYearAndMonth(tutorId, year, month));
     }
 }
