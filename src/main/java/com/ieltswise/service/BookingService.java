@@ -16,4 +16,11 @@ public interface BookingService {
      * @return link to the generated event in Google Calendar
      */
     String bookRegularSession(final BookingSessionData sessionData);
+
+    /**
+     * Determines the availability of a trial session for a student
+     * @param studentEmail student's email
+     * @return availability of a trial session
+     */
+    Boolean isTrialAvailable(String studentEmail);
 }
