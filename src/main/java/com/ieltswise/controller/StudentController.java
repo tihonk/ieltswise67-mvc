@@ -3,6 +3,7 @@ package com.ieltswise.controller;
 import com.ieltswise.entity.BookingSessionData;
 import com.ieltswise.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,5 +30,11 @@ public class StudentController {
     @PostMapping(value = "/bookRegularSession", consumes={APPLICATION_JSON_VALUE})
     public ResponseEntity<String> bookRegularSession(@RequestBody BookingSessionData sessionData) {
         return ResponseEntity.ok(calendarMailService.bookRegularSession(sessionData));
+    }
+
+    @GetMapping("/lessonCount/{email}")
+    public ResponseEntity<String> getUserLessonCount(@PathVariable("email") String email) {
+        int lessonCount = calendarMailService.getNumberOfAvailableLessons(email);
+        return new ResponseEntity<>("{\"Number of lessons available\": \"" + lessonCount + "\"}", HttpStatus.OK);
     }
 }
