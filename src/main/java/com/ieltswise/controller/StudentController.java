@@ -30,4 +30,10 @@ public class StudentController {
     public ResponseEntity<String> bookRegularSession(@RequestBody BookingSessionData sessionData) {
         return ResponseEntity.ok(calendarMailService.bookRegularSession(sessionData));
     }
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/trialavailability/{studentEmail}")
+    public ResponseEntity<Boolean> isTrialAvailable(@PathVariable String studentEmail) {
+        return ResponseEntity.ok(calendarMailService.isTrialAvailable(studentEmail));
+    }
 }
