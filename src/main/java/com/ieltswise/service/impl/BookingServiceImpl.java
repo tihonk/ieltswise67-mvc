@@ -91,6 +91,11 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    @Override
+    public Boolean isTrialAvailable(final String studentEmail){
+        return !isUsedTrialLessonByStudent(studentEmail);
+    }
+
     private String bookSession(final BookingSessionData sessionData) {
         // TODO: Add logs about event creation
         try {

@@ -24,4 +24,11 @@ public interface BookingService {
      * @return the number of user lessons available
      */
     int getNumberOfAvailableLessons(String email);
+
+    /**
+     * Determines the availability of a trial session for a student
+     * @param studentEmail student's email
+     * @return availability of a trial session
+     */
+    Boolean isTrialAvailable(String studentEmail);
 }

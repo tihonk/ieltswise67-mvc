@@ -37,4 +37,10 @@ public class StudentController {
         int lessonCount = calendarMailService.getNumberOfAvailableLessons(email);
         return new ResponseEntity<>("{\"Number of lessons available\": \"" + lessonCount + "\"}", HttpStatus.OK);
     }
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/trialavailability/{studentEmail}")
+    public ResponseEntity<Boolean> isTrialAvailable(@PathVariable String studentEmail) {
+        return ResponseEntity.ok(calendarMailService.isTrialAvailable(studentEmail));
+    }
 }
