@@ -13,7 +13,9 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.*;
 import com.ieltswise.entity.BookingSessionData;
 import com.ieltswise.entity.StudentUsedTrial;
+import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.repository.StudentUsedTrialRepository;
+import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import static com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.load;
@@ -43,9 +46,21 @@ public class BookingServiceImpl implements BookingService {
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
     private final StudentUsedTrialRepository studentUsedTrialRepository;
 
+    private final UserLessonDataRepository userLessonDataRepository;
+
     @Autowired
-    public BookingServiceImpl(StudentUsedTrialRepository trialSessionsRepository) {
+    public BookingServiceImpl(StudentUsedTrialRepository trialSessionsRepository, UserLessonDataRepository userLessonDataRepository) {
         this.studentUsedTrialRepository = trialSessionsRepository;
+        this.userLessonDataRepository = userLessonDataRepository;
+    }
+
+    @Override
+    public int getNumberOfAvailableLessons(String email) {
+        UserLessonData userLessonData = userLessonDataRepository.findByEmail(email);
+        if (userLessonData != null) {
+            return userLessonData.getAvailableLessons();
+        }
+        return 0;
     }
 
     @Override
@@ -64,7 +79,16 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public String bookRegularSession(BookingSessionData sessionData) {
-        return bookSession(sessionData);
+        UserLessonData userLessonData = userLessonDataRepository.findByEmail(sessionData.getStudentEmail());
+        if (userLessonData != null && userLessonData.getAvailableLessons() > 0) {
+            int newAvailableLessons = userLessonData.getAvailableLessons() - 1;
+            userLessonData.setAvailableLessons(newAvailableLessons);
+            userLessonData.setLastBookingDate(new Date());
+            userLessonDataRepository.save(userLessonData);
+            return bookSession(sessionData);
+        } else {
+            return "Failed to book lesson. Insufficient available lessons.";
+        }
     }
 
     @Override

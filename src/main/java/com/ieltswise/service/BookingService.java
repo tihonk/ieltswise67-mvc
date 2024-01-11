@@ -18,6 +18,14 @@ public interface BookingService {
     String bookRegularSession(final BookingSessionData sessionData);
 
     /**
+     * Extracts the number of available lessons for the user based on the email address.
+     *
+     * @param email the user's email address
+     * @return the number of user lessons available
+     */
+    int getNumberOfAvailableLessons(String email);
+
+    /**
      * Determines the availability of a trial session for a student
      * @param studentEmail student's email
      * @return availability of a trial session
