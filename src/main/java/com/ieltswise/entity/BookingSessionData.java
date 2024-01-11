@@ -8,8 +8,9 @@ import lombok.NoArgsConstructor;
 public class BookingSessionData {
 
     private String tutorEmail;
-    private String tutorCode;
     private String studentEmail;
     private String startDate;
     private String endDate;
+    private String paymentId;
+    private String payerID;
 }

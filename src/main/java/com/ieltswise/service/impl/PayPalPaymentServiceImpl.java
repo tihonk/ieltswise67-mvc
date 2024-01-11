@@ -3,15 +3,11 @@ package com.ieltswise.service.impl;
 import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.PayPalPaymentService;
-import com.paypal.api.payments.Amount;
-import com.paypal.api.payments.Payer;
-import com.paypal.api.payments.Payment;
-import com.paypal.api.payments.PaymentExecution;
-import com.paypal.api.payments.RedirectUrls;
-import com.paypal.api.payments.Transaction;
+import com.paypal.api.payments.*;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -22,6 +18,9 @@ import java.util.List;
 @Service
 public class PayPalPaymentServiceImpl implements PayPalPaymentService {
 
+    @Value("${ieltswise67.base.url}")
+    private String baseUrl;
+
     private final APIContext apiContext;
     private final UserLessonDataRepository userLessonDataRepository;
 
@@ -31,9 +30,25 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         this.userLessonDataRepository = userLessonDataRepository;
     }
 
+    @Override
+    public String preparePaymentLink(final String studentEmail, final String successUrl) {
+        try {
+            final Payment payment = createPayment(1, studentEmail, baseUrl + "payment/cancel",
+                    baseUrl + successUrl);
+            for (Links link : payment.getLinks()) {
+                if (link.getRel().equals("approval_url")) {
+                    return link.getHref();
+                }
+            }
+        } catch (PayPalRESTException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public Payment createPayment(int quantity, String email, String cancelUrl, String successUrl) throws PayPalRESTException {
 
-        double lessonPrice = 2.0;
+        double lessonPrice = 15.0;
         double total = lessonPrice * quantity;
 
         Amount amount = new Amount();

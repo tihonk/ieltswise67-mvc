@@ -29,4 +29,13 @@ public interface PayPalPaymentService {
      */
     Payment executePayment(String paymentId, String payerId)
             throws PayPalRESTException;
+
+    /**
+     * Prepare PayPal payment link
+     *
+     * @param studentEmail student e-mail
+     * @param successUrl   redirection url on success
+     * @return payment link
+     */
+    String preparePaymentLink(String studentEmail, String successUrl);
 }
