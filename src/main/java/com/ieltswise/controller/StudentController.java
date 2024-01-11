@@ -51,11 +51,6 @@ public class StudentController {
         }
     }
 
-    @GetMapping("/bookRegularSession")
-    public ResponseEntity<String> getUserLessonCount() {
-        return new ResponseEntity<>("Session booked", OK);
-    }
-
     @GetMapping("/lessonCount/{email}")
     public ResponseEntity<String> getUserLessonCount(@PathVariable("email") String email) {
         int lessonCount = calendarMailService.getNumberOfAvailableLessons(email);
