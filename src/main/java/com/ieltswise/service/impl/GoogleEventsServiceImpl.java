@@ -137,8 +137,9 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
     private List<FreeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray, ZonedDateTime startOfMonth,
                                                                        ZonedDateTime endOfMonth) {
-        TreeMap<Long, TreeMap<String, Boolean>> dateClockStatus = new TreeMap<>();
-        TreeMap<String, Boolean> hourStatus;
+
+        TreeMap<Long, TreeMap<Long, Boolean>> dateClockStatus = new TreeMap<>();
+        TreeMap<Long, Boolean> hourStatus;
 
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject eventItem = jsonArray.getJSONObject(i);
@@ -150,45 +151,82 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
                 ZonedDateTime eventStartDate = extractDate(start);
                 ZonedDateTime eventEndDate = extractDate(end);
 
-                LocalTime localTimeStart = Objects.requireNonNull(eventStartDate).toLocalTime();
-                LocalTime localTimeEnd = Objects.requireNonNull(eventEndDate).toLocalTime();
+                TreeMap<Long, TreeMap<Long, Boolean>> temporarily = new TreeMap<>();
+
+                Instant instant = Objects.requireNonNull(eventStartDate).with(LocalTime.MIDNIGHT).toInstant();
+                long day = instant.toEpochMilli();
 
                 hourStatus = new TreeMap<>();
-                while (!localTimeStart.withMinute(0).isAfter(localTimeEnd.withMinute(0))) {
-                    String formattedTime = localTimeStart.format(DateTimeFormatter.ofPattern("HH:00"));
-                    hourStatus.put(formattedTime, true);
-                    localTimeStart = localTimeStart.plusHours(1);
+
+                ZonedDateTime check = eventStartDate.toLocalDate().atStartOfDay().atZone(eventStartDate.getZone()).plusDays(1).minusSeconds(1);
+
+                while (eventStartDate.isBefore(eventEndDate)) {
+
+                    if (eventStartDate.isAfter(check)) {
+                        temporarily.put(day, hourStatus);
+                        instant = eventStartDate.with(LocalTime.MIDNIGHT).toInstant();
+                        day = instant.toEpochMilli();
+                        hourStatus = new TreeMap<>();
+
+
+                        check = eventStartDate.toLocalDate().atStartOfDay().atZone(eventStartDate.getZone()).plusDays(1).minusSeconds(1);
+                    }
+
+                    ZonedDateTime utcDateTime = eventStartDate.withMinute(0).withZoneSameInstant(java.time.ZoneOffset.UTC);
+                    Long timestamp = utcDateTime.toEpochSecond() * 1000;
+
+
+                    hourStatus.put(timestamp, true);
+
+
+                    if (eventStartDate.withMinute(0).equals(Objects.requireNonNull(eventEndDate).withMinute(0)))
+                        break;
+
+                    eventStartDate = eventStartDate.withMinute(0).plusHours(1);
                 }
-                Instant instant = eventStartDate.with(LocalTime.MIDNIGHT).toInstant();
-                Long day = instant.toEpochMilli();
-                if (dateClockStatus.containsKey(day)) {
-                    TreeMap<String, Boolean> existingValuesTime = dateClockStatus.get(day);
-                    existingValuesTime.putAll(hourStatus);
-                } else {
-                    dateClockStatus.put(day, hourStatus);
+
+                temporarily.put(day, hourStatus);
+
+                for (Map.Entry<Long, TreeMap<Long, Boolean>> entry : temporarily.entrySet()) {
+                    Long outerKey = entry.getKey();
+                    TreeMap<Long, Boolean> innerMap = entry.getValue();
+
+                    if (dateClockStatus.containsKey(outerKey)) {
+                        TreeMap<Long, Boolean> existingValuesTime = dateClockStatus.get(outerKey);
+                        existingValuesTime.putAll(innerMap);
+                    } else {
+                        dateClockStatus.put(outerKey, innerMap);
+                    }
+
                 }
             }
         }
 
-        for (ZonedDateTime dateOne = startOfMonth.with(LocalTime.MIDNIGHT); !dateOne.isAfter(endOfMonth);
-             dateOne = dateOne.plusDays(1)) {
+
+        for (ZonedDateTime dateOne = startOfMonth.with(LocalTime.MIDNIGHT); !dateOne.isAfter(endOfMonth); dateOne = dateOne.plusDays(1)) {
+
             Instant instant = dateOne.toInstant();
             Long dateToCheck = instant.toEpochMilli();
+
             if (dateClockStatus.containsKey(dateToCheck)) {
-                TreeMap<String, Boolean> existingValuesTime = dateClockStatus.get(dateToCheck);
+                TreeMap<Long, Boolean> existingValuesTime = dateClockStatus.get(dateToCheck);
                 for (int i = 0; i < 24; i++) {
-                    LocalTime time = LocalTime.of(i, 0);
-                    String formattedTime = time.format(DateTimeFormatter.ofPattern("HH:mm"));
-                    if (!existingValuesTime.containsKey(formattedTime)) {
-                        existingValuesTime.put(formattedTime, false);
+
+                    ZonedDateTime currentHour = dateOne.withHour(i);
+                    ZonedDateTime utcDateTime = currentHour.withZoneSameInstant(java.time.ZoneOffset.UTC);
+                    Long timestamp = utcDateTime.toEpochSecond() * 1000;
+                    if (!existingValuesTime.containsKey(timestamp)) {
+                        existingValuesTime.put(timestamp, false);
                     }
                 }
             } else {
                 hourStatus = new TreeMap<>();
                 for (int i = 0; i < 24; i++) {
-                    LocalTime time = LocalTime.of(i, 0);
-                    String formattedTime = time.format(DateTimeFormatter.ofPattern("HH:mm"));
-                    hourStatus.put(formattedTime, false);
+
+                    ZonedDateTime currentHour = dateOne.withHour(i);
+                    ZonedDateTime utcDateTime = currentHour.withZoneSameInstant(java.time.ZoneOffset.UTC);
+                    Long timestamp = utcDateTime.toEpochSecond() * 1000;
+                    hourStatus.put(timestamp, false);
                 }
                 dateClockStatus.put(dateToCheck, hourStatus);
             }
@@ -196,19 +234,24 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return getAllHoursAndTheirStatusForAllDaysOfTheMonth(dateClockStatus);
     }
 
-    private List<FreeAndBusyHoursOfTheDay> getAllHoursAndTheirStatusForAllDaysOfTheMonth(TreeMap<Long, TreeMap<String,
+
+    private List<FreeAndBusyHoursOfTheDay> getAllHoursAndTheirStatusForAllDaysOfTheMonth(TreeMap<Long, TreeMap<Long,
             Boolean>> dateClockStatus) {
+
         List<FreeAndBusyHoursOfTheDay> eventsOfMonth = new ArrayList<>();
+
         FreeAndBusyHoursOfTheDay eventsOfDay;
+
         List<Map<String, Object>> informationAboutAllHoursOfTheDay;
+
         Map<String, Object> hourStatus;
 
-        for (Map.Entry<Long, TreeMap<String, Boolean>> entry1 : dateClockStatus.entrySet()) {
+        for (Map.Entry<Long, TreeMap<Long, Boolean>> entry1 : dateClockStatus.entrySet()) {
             Long dateKey = entry1.getKey();
-            TreeMap<String, Boolean> hoursAndTheirStatus = entry1.getValue();
+            TreeMap<Long, Boolean> hoursAndTheirStatus = entry1.getValue();
             informationAboutAllHoursOfTheDay = new ArrayList<>();
-            for (Map.Entry<String, Boolean> entry2 : hoursAndTheirStatus.entrySet()) {
-                String hourKey = entry2.getKey();
+            for (Map.Entry<Long, Boolean> entry2 : hoursAndTheirStatus.entrySet()) {
+                Long hourKey = entry2.getKey();
                 Boolean status = entry2.getValue();
                 hourStatus = new HashMap<>();
                 hourStatus.put("time", hourKey);
