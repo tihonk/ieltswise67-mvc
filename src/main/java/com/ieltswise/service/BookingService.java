@@ -1,21 +1,23 @@
 package com.ieltswise.service;
 
 import com.ieltswise.entity.BookingSessionData;
+import com.ieltswise.entity.SessionData;
+import com.ieltswise.exception.BookingSessionException;
 
 public interface BookingService {
     /**
      * A method for booking a free trial lesson with a tutor in Google Calendar
      * @param sessionData contains information about the participants and the time of the planned event
-     * @return link to the generated event in Google Calendar
+     * @return booking session data
      */
-    String bookTrialSession(final BookingSessionData sessionData);
+    SessionData bookTrialSession(final BookingSessionData sessionData) throws BookingSessionException;
 
     /**
      * A method for booking a regular lesson with a tutor in Google Calendar
      * @param sessionData contains information about the participants and the time of the planned event
-     * @return link to the generated event in Google Calendar
+     * @return booking session data
      */
-    String bookRegularSession(final BookingSessionData sessionData);
+    SessionData bookRegularSession(final BookingSessionData sessionData);
 
     /**
      * Extracts the number of available lessons for the user based on the email address.
