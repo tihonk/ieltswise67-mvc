@@ -12,8 +12,10 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.*;
 import com.ieltswise.entity.BookingSessionData;
+import com.ieltswise.entity.SessionData;
 import com.ieltswise.entity.StudentUsedTrial;
 import com.ieltswise.entity.UserLessonData;
+import com.ieltswise.exception.BookingSessionException;
 import com.ieltswise.repository.StudentUsedTrialRepository;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.BookingService;
@@ -64,30 +66,32 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public String bookTrialSession(final BookingSessionData sessionData) {
+    public SessionData bookTrialSession(final BookingSessionData sessionData) throws BookingSessionException {
         final String studentEmail = sessionData.getStudentEmail();
         if (isUsedTrialLessonByStudent(studentEmail)) {
-            throw new RuntimeException(format("User with ID: %s has already used a trial lesson", studentEmail));
+            throw new BookingSessionException("Already used a trial lesson for email: " + studentEmail);
         } else {
             final String eventLink = bookSession(sessionData);
             if (eventLink != null) {
                 saveStudentUsedTrialLesson(studentEmail);
+                sessionData.setEventLink(eventLink);
             }
-            return eventLink;
+            return prepareTrimmedSessionData(sessionData);
         }
     }
 
     @Override
-    public String bookRegularSession(BookingSessionData sessionData) {
+    public SessionData bookRegularSession(BookingSessionData sessionData) {
         UserLessonData userLessonData = userLessonDataRepository.findByEmail(sessionData.getStudentEmail());
         if (userLessonData != null && userLessonData.getAvailableLessons() > 0) {
             int newAvailableLessons = userLessonData.getAvailableLessons() - 1;
             userLessonData.setAvailableLessons(newAvailableLessons);
             userLessonData.setLastBookingDate(new Date());
             userLessonDataRepository.save(userLessonData);
-            return bookSession(sessionData);
+            sessionData.setEventLink(bookSession(sessionData));
+            return prepareTrimmedSessionData(sessionData);
         } else {
-            return "Failed to book lesson. Insufficient available lessons.";
+            return null;
         }
     }
 
@@ -201,6 +205,14 @@ public class BookingServiceImpl implements BookingService {
     private Calendar buildCalendarService(NetHttpTransport httpTransport) throws IOException {
         return new Calendar.Builder(httpTransport, JSON_FACTORY, getCredentials(httpTransport))
                 .setApplicationName("IELTSWise Google API")
+                .build();
+    }
+
+    private SessionData prepareTrimmedSessionData(final BookingSessionData sessionData) {
+        return SessionData.builder()
+                .studentEmail(sessionData.getStudentEmail())
+                .sessionTime(sessionData.getStartDate())
+                .eventLink(sessionData.getEventLink())
                 .build();
     }
 
