@@ -33,9 +33,10 @@ public interface PayPalPaymentService {
     /**
      * Prepare PayPal payment link
      *
-     * @param studentEmail student e-mail
      * @param successUrl   redirection url on success
+     * @param cancelUrl    redirection url on cancel
+     * @param studentEmail student e-mail
      * @return payment link
      */
-    String preparePaymentLink(String studentEmail, String successUrl);
+    String preparePaymentLink(String successUrl, String cancelUrl, String studentEmail);
 }
