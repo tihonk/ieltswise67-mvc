@@ -22,24 +22,14 @@ public class PaypalController {
     }
 
     @GetMapping("/paymentLink")
-    public ResponseEntity<String> getPaymentLink(@RequestParam("studentEmail") String studentEmail,
-                                                 @RequestParam("tutorEmail") String tutorEmail,
-                                                 @RequestParam("startDate") String startDate,
-                                                 @RequestParam("endDate") String endDate) {
-        final String successUrl = new StringBuilder()
-                .append("?studentEmail=")
-                .append(studentEmail)
-                .append("&tutorEmail=")
-                .append(tutorEmail)
-                .append("&startDate=")
-                .append(startDate)
-                .append("&endDate=")
-                .append(endDate).toString();
-        final String paymentLink = payPalService.preparePaymentLink(studentEmail, successUrl);
+    public ResponseEntity<String> getPaymentLink(@RequestParam("successUrl") String successUrl,
+                                                 @RequestParam("cancelUrl") String cancelUrl,
+                                                 @RequestParam("studentEmail") String studentEmail) {
+        final String paymentLink = payPalService.preparePaymentLink(successUrl, cancelUrl, studentEmail);
         if (paymentLink != null) {
-            return new ResponseEntity<>(paymentLink, OK);
+            return ResponseEntity.ok(paymentLink);
         }
-        return new ResponseEntity<>("Failed to create payment link", INTERNAL_SERVER_ERROR);
+        return ResponseEntity.status(INTERNAL_SERVER_ERROR).body("Failed to create payment link");
     }
 
     @GetMapping("/cancel")

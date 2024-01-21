@@ -31,10 +31,9 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
     }
 
     @Override
-    public String preparePaymentLink(final String studentEmail, final String successUrl) {
+    public String preparePaymentLink(final String successUrl, final String cancelUrl, final String studentEmail) {
         try {
-            final Payment payment = createPayment(1, studentEmail, baseUrl + "payment/cancel",
-                    baseUrl + successUrl);
+            final Payment payment = createPayment(1, studentEmail, cancelUrl, successUrl);
             for (Links link : payment.getLinks()) {
                 if (link.getRel().equals("approval_url")) {
                     return link.getHref();
