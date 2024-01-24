@@ -28,13 +28,13 @@ public class CommentController {
     }
 
     @GetMapping
-    ResponseEntity<Object> getAllComments() {
+    ResponseEntity<List<StudentComment>> getAllComments() {
         List<StudentComment> comments = commentRepository.findAll();
         return new ResponseEntity<>(comments, HttpStatus.OK);
     }
 
     @PostMapping()
-    ResponseEntity<Object> createComment(@RequestBody StudentCommentDto commentDto) {
+    ResponseEntity<?> createComment(@RequestBody StudentCommentDto commentDto) {
         try {
             StudentComment comment = commentService.createComment(commentDto);
             if (comment != null)

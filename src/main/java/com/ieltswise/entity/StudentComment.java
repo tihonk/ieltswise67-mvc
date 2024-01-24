@@ -22,12 +22,12 @@ public class StudentComment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true)
     private Long id;
-    @Column(name = "EMAIL", unique = true, nullable = false)
+    @Column(name = "EMAIL", nullable = false)
     private String studentEmail;
     @Column(name = "NAME", nullable = false)
     private String studentName;
-    @Column(name = "STUDENT_COMMENT", nullable = false)
-    private String comment;
+    @Column(name = "VALUE", nullable = false)
+    private String value;
     @Column(nullable = false)
     private LocalDateTime created;
 }

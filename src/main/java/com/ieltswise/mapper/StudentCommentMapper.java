@@ -2,10 +2,12 @@ package com.ieltswise.mapper;
 
 import com.ieltswise.dto.StudentCommentDto;
 import com.ieltswise.entity.StudentComment;
-import org.mapstruct.Mapper;
 
-@Mapper
 public interface StudentCommentMapper {
-    StudentCommentDto mapToStudentCommentDto(StudentComment studentComment);
+    /**
+     * Converts a StudentCommentDto object to a StudentComment object
+     * @param studentCommentDto the DTO object of the student's comment
+     * @return a StudentComment object representing a comment from a student
+     */
     StudentComment mapToStudentComment(StudentCommentDto studentCommentDto);
 }
