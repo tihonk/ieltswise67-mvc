@@ -10,22 +10,24 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "USER_LESSON_DATA")
-public class UserLessonData {
+@Table(name = "STUDENT_COMMENT")
+public class StudentComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true)
-    private Long userId;
-    @Column(name = "EMAIL", unique = true, nullable = false)
-    private String email;
+    private Long id;
+    @Column(name = "EMAIL", nullable = false)
+    private String studentEmail;
+    @Column(name = "NAME", nullable = false)
+    private String studentName;
+    @Column(name = "VALUE", nullable = false)
+    private String value;
     @Column(nullable = false)
-    private int availableLessons;
-    @Column
-    private Date lastBookingDate;
+    private LocalDateTime created;
 }
