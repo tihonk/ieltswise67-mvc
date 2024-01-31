@@ -13,4 +13,5 @@ public class BookingSessionData {
     private String endDate;
     private String paymentId;
     private String payerID;
+    private String eventLink;
 }

@@ -1,6 +1,7 @@
 package com.ieltswise.config;
 
 import com.paypal.base.rest.APIContext;
+import com.paypal.base.rest.AccessToken;
 import com.paypal.base.rest.OAuthTokenCredential;
 import com.paypal.base.rest.PayPalRESTException;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ public class PaypalConfig {
     private String clientSecret;
     @Value("${paypal.mode}")
     private String mode;
+    private AccessToken accessToken;
 
     @Bean
     public Map<String, String> paypalSdkConfig() {
@@ -27,16 +29,12 @@ public class PaypalConfig {
         return configMap;
     }
 
-    @Bean
-    public OAuthTokenCredential oAuthTokenCredential() {
-        return new OAuthTokenCredential(clientId, clientSecret, paypalSdkConfig());
+    public AccessToken getAccessToken() {
+        return accessToken;
     }
 
-    @Bean
-    public APIContext apiContext() throws PayPalRESTException {
-        APIContext context = new APIContext(oAuthTokenCredential().getAccessToken());
-        context.setConfigurationMap(paypalSdkConfig());
-        return context;
+    public synchronized void updateAccessToken() throws PayPalRESTException {
+        OAuthTokenCredential tokenCredential = new OAuthTokenCredential(clientId, clientSecret, paypalSdkConfig());
+        accessToken = new AccessToken(tokenCredential.getAccessToken(), tokenCredential.expiresIn());
     }
-
 }

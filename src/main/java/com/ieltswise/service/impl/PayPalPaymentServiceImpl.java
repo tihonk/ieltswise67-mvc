@@ -1,10 +1,12 @@
 package com.ieltswise.service.impl;
 
+import com.ieltswise.config.PaypalConfig;
 import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.PayPalPaymentService;
 import com.paypal.api.payments.*;
 import com.paypal.base.rest.APIContext;
+import com.paypal.base.rest.AccessToken;
 import com.paypal.base.rest.PayPalRESTException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,20 +23,20 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
     @Value("${ieltswise67.base.url}")
     private String baseUrl;
 
-    private final APIContext apiContext;
+    private APIContext context;
+    private final PaypalConfig paypalConfig;
     private final UserLessonDataRepository userLessonDataRepository;
 
     @Autowired
-    public PayPalPaymentServiceImpl(APIContext apiContext, UserLessonDataRepository userLessonDataRepository) {
-        this.apiContext = apiContext;
+    public PayPalPaymentServiceImpl(PaypalConfig paypalConfig, UserLessonDataRepository userLessonDataRepository) {
+        this.paypalConfig = paypalConfig;
         this.userLessonDataRepository = userLessonDataRepository;
     }
 
     @Override
-    public String preparePaymentLink(final String studentEmail, final String successUrl) {
+    public String preparePaymentLink(final String successUrl, final String cancelUrl, final String studentEmail) {
         try {
-            final Payment payment = createPayment(1, studentEmail, baseUrl + "payment/cancel",
-                    baseUrl + successUrl);
+            final Payment payment = createPayment(1, studentEmail, cancelUrl, successUrl);
             for (Links link : payment.getLinks()) {
                 if (link.getRel().equals("approval_url")) {
                     return link.getHref();
@@ -44,6 +46,18 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private APIContext getAPIContext() throws PayPalRESTException {
+        AccessToken token = paypalConfig.getAccessToken();
+
+        if (token == null || token.expiresIn() <= 0) {
+            paypalConfig.updateAccessToken();
+            token = paypalConfig.getAccessToken();
+            context = new APIContext(token.getAccessToken());
+            context.setConfigurationMap(paypalConfig.paypalSdkConfig());
+        }
+        return context;
     }
 
     public Payment createPayment(int quantity, String email, String cancelUrl, String successUrl) throws PayPalRESTException {
@@ -75,7 +89,7 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         redirectUrls.setCancelUrl(cancelUrl);
         payment.setRedirectUrls(redirectUrls);
 
-        return payment.create(apiContext);
+        return payment.create(getAPIContext());
     }
 
     public Payment executePayment(String paymentId, String payerId) throws PayPalRESTException {
@@ -84,7 +98,7 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         PaymentExecution paymentExecution = new PaymentExecution();
         paymentExecution.setPayerId(payerId);
 
-        Payment executedPayment = payment.execute(apiContext, paymentExecution);
+        Payment executedPayment = payment.execute(getAPIContext(), paymentExecution);
         getQuantityAndEmail(executedPayment);
 
         return executedPayment;
