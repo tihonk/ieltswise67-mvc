@@ -1,7 +1,7 @@
 package com.ieltswise.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ieltswise.entity.BookingSessionData;
+import com.ieltswise.entity.SessionDataRequest;
 import com.ieltswise.exception.BookingSessionException;
 import com.ieltswise.service.BookingService;
 import com.ieltswise.service.PayPalPaymentService;
@@ -31,7 +31,7 @@ public class StudentController {
 
     @CrossOrigin(origins = "*")
     @PostMapping(value = "/bookTrialSession", consumes={APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> bookTrialSession(@RequestBody BookingSessionData sessionData) throws JsonProcessingException {
+    public ResponseEntity<?> bookTrialSession(@RequestBody SessionDataRequest sessionData) throws JsonProcessingException {
         try {
             return ResponseEntity.ok(calendarMailService.bookTrialSession(sessionData));
         } catch (BookingSessionException e) {
@@ -41,7 +41,7 @@ public class StudentController {
 
     @CrossOrigin(origins = "*")
     @PostMapping(value = "/bookRegularSession", consumes={APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> bookRegularSession(@RequestBody BookingSessionData sessionData) {
+    public ResponseEntity<?> bookRegularSession(@RequestBody SessionDataRequest sessionData) {
         try {
             final Payment payment = payPalService.executePayment(sessionData.getPaymentId(), sessionData.getPayerID());
             if (payment.getState().equals("approved")) {

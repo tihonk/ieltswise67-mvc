@@ -122,6 +122,7 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         } else {
             UserLessonData newUserLessonData = new UserLessonData();
             newUserLessonData.setEmail(email);
+            newUserLessonData.setUsedTrial(false);
             newUserLessonData.setAvailableLessons(quantity);
             userLessonDataRepository.save(newUserLessonData);
         }

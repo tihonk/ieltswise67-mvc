@@ -1,7 +1,7 @@
 package com.ieltswise.service;
 
-import com.ieltswise.entity.BookingSessionData;
-import com.ieltswise.entity.SessionData;
+import com.ieltswise.entity.SessionDataRequest;
+import com.ieltswise.entity.SessionDataResponse;
 import com.ieltswise.exception.BookingSessionException;
 
 public interface BookingService {
@@ -10,14 +10,14 @@ public interface BookingService {
      * @param sessionData contains information about the participants and the time of the planned event
      * @return booking session data
      */
-    SessionData bookTrialSession(final BookingSessionData sessionData) throws BookingSessionException;
+    SessionDataResponse bookTrialSession(final SessionDataRequest sessionData) throws BookingSessionException;
 
     /**
      * A method for booking a regular lesson with a tutor in Google Calendar
      * @param sessionData contains information about the participants and the time of the planned event
      * @return booking session data
      */
-    SessionData bookRegularSession(final BookingSessionData sessionData);
+    SessionDataResponse bookRegularSession(final SessionDataRequest sessionData);
 
     /**
      * Extracts the number of available lessons for the user based on the email address.
