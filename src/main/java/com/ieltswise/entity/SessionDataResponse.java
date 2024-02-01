@@ -5,9 +5,10 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class SessionData {
+public class SessionDataResponse {
 
     private String studentEmail;
     private String sessionTime;
     private String eventLink;
+    private String requestedService;
 }

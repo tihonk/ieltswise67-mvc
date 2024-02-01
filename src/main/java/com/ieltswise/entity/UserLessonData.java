@@ -24,6 +24,10 @@ public class UserLessonData {
     private Long userId;
     @Column(name = "EMAIL", unique = true, nullable = false)
     private String email;
+    @Column(name = "NAME")
+    private String name;
+    @Column(name = "USED_TRIAL")
+    private Boolean usedTrial;
     @Column(nullable = false)
     private int availableLessons;
     @Column

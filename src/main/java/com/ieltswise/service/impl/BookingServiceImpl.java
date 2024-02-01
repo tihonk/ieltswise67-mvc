@@ -11,14 +11,13 @@ import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.*;
-import com.ieltswise.entity.BookingSessionData;
-import com.ieltswise.entity.SessionData;
-import com.ieltswise.entity.StudentUsedTrial;
+import com.ieltswise.entity.SessionDataRequest;
+import com.ieltswise.entity.SessionDataResponse;
 import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.exception.BookingSessionException;
-import com.ieltswise.repository.StudentUsedTrialRepository;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.BookingService;
+import com.ieltswise.service.PayPalPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -35,7 +33,6 @@ import static com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.l
 import static com.google.api.client.googleapis.javanet.GoogleNetHttpTransport.newTrustedTransport;
 import static com.google.api.client.json.gson.GsonFactory.getDefaultInstance;
 import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
-import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -46,13 +43,11 @@ public class BookingServiceImpl implements BookingService {
     private static final List<String> SCOPES = singletonList(CALENDAR);
     private static final String TOKENS_DIRECTORY_PATH = "src/main/resources/tokens";
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-    private final StudentUsedTrialRepository studentUsedTrialRepository;
 
     private final UserLessonDataRepository userLessonDataRepository;
 
     @Autowired
-    public BookingServiceImpl(StudentUsedTrialRepository trialSessionsRepository, UserLessonDataRepository userLessonDataRepository) {
-        this.studentUsedTrialRepository = trialSessionsRepository;
+    public BookingServiceImpl(UserLessonDataRepository userLessonDataRepository) {
         this.userLessonDataRepository = userLessonDataRepository;
     }
 
@@ -66,30 +61,31 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public SessionData bookTrialSession(final BookingSessionData sessionData) throws BookingSessionException {
+    public SessionDataResponse bookTrialSession(final SessionDataRequest sessionData) throws BookingSessionException {
         final String studentEmail = sessionData.getStudentEmail();
         if (isUsedTrialLessonByStudent(studentEmail)) {
             throw new BookingSessionException("Already used a trial lesson for email: " + studentEmail);
         } else {
-            final String eventLink = bookSession(sessionData);
+            final String studentName = sessionData.getStudentName();
+            final String eventLink = bookSession(sessionData, studentName);
             if (eventLink != null) {
-                saveStudentUsedTrialLesson(studentEmail);
+                saveStudentUsedTrialLesson(studentEmail, studentName);
                 sessionData.setEventLink(eventLink);
             }
-            return prepareTrimmedSessionData(sessionData);
+            return prepareSessionDataResponse(sessionData);
         }
     }
 
     @Override
-    public SessionData bookRegularSession(BookingSessionData sessionData) {
+    public SessionDataResponse bookRegularSession(SessionDataRequest sessionData) {
         UserLessonData userLessonData = userLessonDataRepository.findByEmail(sessionData.getStudentEmail());
         if (userLessonData != null && userLessonData.getAvailableLessons() > 0) {
             int newAvailableLessons = userLessonData.getAvailableLessons() - 1;
             userLessonData.setAvailableLessons(newAvailableLessons);
             userLessonData.setLastBookingDate(new Date());
             userLessonDataRepository.save(userLessonData);
-            sessionData.setEventLink(bookSession(sessionData));
-            return prepareTrimmedSessionData(sessionData);
+            sessionData.setEventLink(bookSession(sessionData, userLessonData.getName()));
+            return prepareSessionDataResponse(sessionData);
         } else {
             return null;
         }
@@ -100,30 +96,41 @@ public class BookingServiceImpl implements BookingService {
         return !isUsedTrialLessonByStudent(studentEmail);
     }
 
-    private String bookSession(final BookingSessionData sessionData) {
+    private String bookSession(final SessionDataRequest sessionData, final String studentName) {
         // TODO: Add logs about event creation
         try {
-            final Event event = prepareAndSendEvent(sessionData);
+            final Event event = prepareAndSendEvent(sessionData, studentName);
             return event.getHtmlLink();
         } catch (Exception e) {
+            System.err.println("Failed to create event for email " + sessionData.getStudentEmail());
             return null;
         }
     }
 
     private boolean isUsedTrialLessonByStudent(String studentEmail) {
-        StudentUsedTrial student = studentUsedTrialRepository.findByEmail(studentEmail);
-        return student != null;
+        UserLessonData student = userLessonDataRepository.findByEmail(studentEmail);
+        return student != null && student.getUsedTrial();
     }
 
-    private void saveStudentUsedTrialLesson(String email) {
-        StudentUsedTrial student = new StudentUsedTrial();
-        student.setEmail(email);
-        student.setCreated(LocalDateTime.now());
-        studentUsedTrialRepository.save(student);
+    private void saveStudentUsedTrialLesson(final String email, final String studentName) {
+        final UserLessonData student = userLessonDataRepository.findByEmail(email);
+        if (student == null) {
+            final UserLessonData newStudent = new UserLessonData();
+            newStudent.setEmail(email);
+            newStudent.setName(studentName);
+            newStudent.setUsedTrial(true);
+            newStudent.setLastBookingDate(new Date());
+            userLessonDataRepository.save(newStudent);
+        } else if(!student.getUsedTrial()) {
+            student.setUsedTrial(true);
+            student.setName(studentName);
+            userLessonDataRepository.save(student);
+        }
     }
 
-    private Event prepareAndSendEvent(final BookingSessionData sessionData) throws GeneralSecurityException, IOException {
-        final Event event = buildEventWithMeet(sessionData);
+    private Event prepareAndSendEvent(final SessionDataRequest sessionData, final String studentName)
+            throws GeneralSecurityException, IOException {
+        final Event event = buildEventWithMeet(sessionData, studentName);
         final NetHttpTransport httpTransport = newTrustedTransport();
         final Calendar calendar = buildCalendarService(httpTransport);
 
@@ -134,12 +141,12 @@ public class BookingServiceImpl implements BookingService {
                 .execute();
     }
 
-    private Event buildEventWithMeet(BookingSessionData sessionData) {
+    private Event buildEventWithMeet(final SessionDataRequest sessionData, final String studentName) {
         // TODO: Add the ability to book regular sessions by using ".setRecurrence"
         return new Event()
                 .setSummary("English with IELTSWise67")
                 .setLocation("Online")
-                .setDescription("A chance to learn English with IELTSWise67 and discover new opportunities.")
+                .setDescription(prepareEventDescription(sessionData.getRequestedService(), studentName))
                 .setConferenceData(prepareConferenceData())
                 .setStart(prepareEventTime(sessionData.getStartDate()))
                 .setEnd(prepareEventTime(sessionData.getEndDate()))
@@ -161,7 +168,7 @@ public class BookingServiceImpl implements BookingService {
                 .setTimeZone("Europe/London");
     }
 
-    private List<EventAttendee> prepareEventAttendees(final BookingSessionData sessionData) {
+    private List<EventAttendee> prepareEventAttendees(final SessionDataRequest sessionData) {
         final EventAttendee[] attendees = new EventAttendee[] {
                 new EventAttendee().setEmail(sessionData.getStudentEmail()),
                 new EventAttendee().setEmail(sessionData.getTutorEmail()).setResource(true).setOrganizer(true),
@@ -208,12 +215,22 @@ public class BookingServiceImpl implements BookingService {
                 .build();
     }
 
-    private SessionData prepareTrimmedSessionData(final BookingSessionData sessionData) {
-        return SessionData.builder()
+    private SessionDataResponse prepareSessionDataResponse(final SessionDataRequest sessionData) {
+        return SessionDataResponse.builder()
                 .studentEmail(sessionData.getStudentEmail())
                 .sessionTime(sessionData.getStartDate())
                 .eventLink(sessionData.getEventLink())
+                .requestedService(sessionData.getRequestedService())
                 .build();
+    }
+
+    private String prepareEventDescription(String requestedService, String studentName) {
+        return """
+                        <b>Student Name</b>\s
+                        %s<br>
+                        <b>Requested Service</b>\s
+                        %s"""
+                .formatted(studentName, requestedService);
     }
 
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
