@@ -47,8 +47,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserLessonDataRepository userLessonDataRepository;
 
     @Autowired
-    public BookingServiceImpl(UserLessonDataRepository userLessonDataRepository,
-                              PayPalPaymentService paymentService) {
+    public BookingServiceImpl(UserLessonDataRepository userLessonDataRepository) {
         this.userLessonDataRepository = userLessonDataRepository;
     }
 
