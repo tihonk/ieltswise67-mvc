@@ -17,7 +17,6 @@ import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.exception.BookingSessionException;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.BookingService;
-import com.ieltswise.service.PayPalPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +42,6 @@ public class BookingServiceImpl implements BookingService {
     private static final List<String> SCOPES = singletonList(CALENDAR);
     private static final String TOKENS_DIRECTORY_PATH = "src/main/resources/tokens";
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-
     private final UserLessonDataRepository userLessonDataRepository;
 
     @Autowired
