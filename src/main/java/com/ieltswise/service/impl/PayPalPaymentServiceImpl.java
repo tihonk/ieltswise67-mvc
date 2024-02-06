@@ -4,7 +4,13 @@ import com.ieltswise.config.PaypalConfig;
 import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.PayPalPaymentService;
-import com.paypal.api.payments.*;
+import com.paypal.api.payments.Amount;
+import com.paypal.api.payments.Links;
+import com.paypal.api.payments.Payer;
+import com.paypal.api.payments.Payment;
+import com.paypal.api.payments.PaymentExecution;
+import com.paypal.api.payments.RedirectUrls;
+import com.paypal.api.payments.Transaction;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.AccessToken;
 import com.paypal.base.rest.PayPalRESTException;
@@ -22,6 +28,7 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
 
     @Value("${ieltswise67.base.url}")
     private String baseUrl;
+    private final double LESSON_PRICE = 15.0;
 
     private APIContext context;
     private final PaypalConfig paypalConfig;
@@ -62,8 +69,7 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
 
     public Payment createPayment(int quantity, String email, String cancelUrl, String successUrl) throws PayPalRESTException {
 
-        double lessonPrice = 15.0;
-        double total = lessonPrice * quantity;
+        double total = calculateTotalPrice(quantity, email);
 
         Amount amount = new Amount();
         amount.setCurrency("USD");
@@ -92,6 +98,25 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         return payment.create(getAPIContext());
     }
 
+    private double calculateTotalPrice(int quantity, String email) {
+        UserLessonData userLessonData = userLessonDataRepository.findByEmail(email);
+        if (userLessonData != null && (userLessonData.getAllPaidLessons() + quantity) % 5 == 0) {
+            return applyDiscount(quantity);
+        } else {
+            return calculateRegularPrice(quantity);
+        }
+    }
+
+    private double applyDiscount(int quantity) {
+        double totalPrice = calculateRegularPrice(quantity);
+        double discount = LESSON_PRICE * 5 * 0.05;
+        return totalPrice - discount;
+    }
+
+    private double calculateRegularPrice(int quantity) {
+        return LESSON_PRICE * quantity;
+    }
+
     public Payment executePayment(String paymentId, String payerId) throws PayPalRESTException {
         Payment payment = new Payment();
         payment.setId(paymentId);
@@ -117,13 +142,16 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         UserLessonData userLessonData = userLessonDataRepository.findByEmail(email);
         if (userLessonData != null) {
             int availableLessons = userLessonData.getAvailableLessons() + quantity;
+            int allLessons = userLessonData.getAllPaidLessons() + quantity;
             userLessonData.setAvailableLessons(availableLessons);
+            userLessonData.setAllPaidLessons(allLessons);
             userLessonDataRepository.save(userLessonData);
         } else {
             UserLessonData newUserLessonData = new UserLessonData();
             newUserLessonData.setEmail(email);
             newUserLessonData.setUsedTrial(false);
             newUserLessonData.setAvailableLessons(quantity);
+            newUserLessonData.setAllPaidLessons(quantity);
             userLessonDataRepository.save(newUserLessonData);
         }
     }

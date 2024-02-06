@@ -30,6 +30,8 @@ public class UserLessonData {
     private Boolean usedTrial;
     @Column(nullable = false)
     private int availableLessons;
+    @Column(nullable = false)
+    private int allPaidLessons;
     @Column
     private Date lastBookingDate;
 }
