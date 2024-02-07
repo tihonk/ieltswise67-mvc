@@ -22,8 +22,9 @@ public class PaypalController {
     @GetMapping("/paymentLink")
     public ResponseEntity<String> getPaymentLink(@RequestParam("successUrl") String successUrl,
                                                  @RequestParam("cancelUrl") String cancelUrl,
+                                                 @RequestParam("tutorEmail") String tutorEmail,
                                                  @RequestParam("studentEmail") String studentEmail) {
-        final String paymentLink = payPalService.preparePaymentLink(successUrl, cancelUrl, studentEmail);
+        final String paymentLink = payPalService.preparePaymentLink(successUrl, cancelUrl, tutorEmail, studentEmail);
         if (paymentLink != null) {
             return ResponseEntity.ok(paymentLink);
         }

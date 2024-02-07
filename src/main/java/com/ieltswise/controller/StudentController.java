@@ -43,13 +43,14 @@ public class StudentController {
     @PostMapping(value = "/bookRegularSession", consumes={APPLICATION_JSON_VALUE})
     public ResponseEntity<?> bookRegularSession(@RequestBody SessionDataRequest sessionData) {
         try {
-            final Payment payment = payPalService.executePayment(sessionData.getPaymentId(), sessionData.getPayerID());
+            final Payment payment = payPalService.executePayment(sessionData.getPaymentId(), sessionData.getPayerID(),
+                    sessionData.getTutorEmail());
             if (payment.getState().equals("approved")) {
                 return ResponseEntity.ok(calendarMailService.bookRegularSession(sessionData));
             } else {
                 return ResponseEntity.status(BAD_REQUEST).build();
             }
-        } catch (PayPalRESTException e) {
+        } catch (PayPalRESTException | NullPointerException e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }

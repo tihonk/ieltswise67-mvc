@@ -1,7 +1,9 @@
 package com.ieltswise.service.impl;
 
 import com.ieltswise.config.PaypalConfig;
+import com.ieltswise.entity.PaymentCredentials;
 import com.ieltswise.entity.UserLessonData;
+import com.ieltswise.repository.PaymentCredentialsRepository;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.PayPalPaymentService;
 import com.paypal.api.payments.Amount;
@@ -29,47 +31,51 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
     @Value("${ieltswise67.base.url}")
     private String baseUrl;
     private final double LESSON_PRICE = 15.0;
-
-    private APIContext context;
     private final PaypalConfig paypalConfig;
     private final UserLessonDataRepository userLessonDataRepository;
+    private final PaymentCredentialsRepository credentialsRepository;
 
     @Autowired
-    public PayPalPaymentServiceImpl(PaypalConfig paypalConfig, UserLessonDataRepository userLessonDataRepository) {
+    public PayPalPaymentServiceImpl(PaypalConfig paypalConfig, UserLessonDataRepository userLessonDataRepository,
+                                    PaymentCredentialsRepository credentialsRepository) {
         this.paypalConfig = paypalConfig;
         this.userLessonDataRepository = userLessonDataRepository;
+        this.credentialsRepository = credentialsRepository;
     }
 
     @Override
-    public String preparePaymentLink(final String successUrl, final String cancelUrl, final String studentEmail) {
+    public String preparePaymentLink(final String successUrl, final String cancelUrl, final String tutorEmail,
+                                     final String studentEmail) {
         try {
-            final Payment payment = createPayment(1, studentEmail, cancelUrl, successUrl);
+            final Payment payment = createPayment(1, cancelUrl, successUrl, tutorEmail, studentEmail);
             for (Links link : payment.getLinks()) {
                 if (link.getRel().equals("approval_url")) {
                     return link.getHref();
                 }
             }
-        } catch (PayPalRESTException e) {
+        } catch (PayPalRESTException | NullPointerException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private APIContext getAPIContext() throws PayPalRESTException {
-        AccessToken token = paypalConfig.getAccessToken();
+    private APIContext getAPIContext(String email) throws PayPalRESTException {
+        AccessToken token = paypalConfig.getAccessToken(email);
 
         if (token == null || token.expiresIn() <= 0) {
-            paypalConfig.updateAccessToken();
-            token = paypalConfig.getAccessToken();
-            context = new APIContext(token.getAccessToken());
-            context.setConfigurationMap(paypalConfig.paypalSdkConfig());
+            paypalConfig.updateAccessToken(email);
+            token = paypalConfig.getAccessToken(email);
         }
+
+        APIContext context = new APIContext(token.getAccessToken());
+        context.setConfigurationMap(paypalConfig.paypalSdkConfig());
         return context;
     }
 
-    public Payment createPayment(int quantity, String email, String cancelUrl, String successUrl) throws PayPalRESTException {
+    public Payment createPayment(int quantity, String cancelUrl, String successUrl, String tutorEmail, String studentEmail)
+            throws PayPalRESTException {
 
-        double total = calculateTotalPrice(quantity, email);
+        double total = calculateTotalPrice(quantity, studentEmail);
 
         Amount amount = new Amount();
         amount.setCurrency("USD");
@@ -78,7 +84,7 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
 
         Transaction transaction = new Transaction();
         transaction.setAmount(amount);
-        transaction.setDescription(String.format("Lesson quantity: %d, user email: %s", quantity, email));
+        transaction.setDescription(String.format("Lesson quantity: %d, user email: %s", quantity, studentEmail));
 
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(transaction);
@@ -95,7 +101,7 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         redirectUrls.setCancelUrl(cancelUrl);
         payment.setRedirectUrls(redirectUrls);
 
-        return payment.create(getAPIContext());
+        return payment.create(getAPIContext(tutorEmail));
     }
 
     private double calculateTotalPrice(int quantity, String email) {
@@ -117,16 +123,31 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         return LESSON_PRICE * quantity;
     }
 
-    public Payment executePayment(String paymentId, String payerId) throws PayPalRESTException {
+    public Payment executePayment(String paymentId, String payerId, String tutorEmail) throws PayPalRESTException {
+        PaymentCredentials credentials = verifyPaymentNotCompleted(paymentId, tutorEmail);
+
         Payment payment = new Payment();
         payment.setId(paymentId);
         PaymentExecution paymentExecution = new PaymentExecution();
         paymentExecution.setPayerId(payerId);
 
-        Payment executedPayment = payment.execute(getAPIContext(), paymentExecution);
+        Payment executedPayment = payment.execute(getAPIContext(tutorEmail), paymentExecution);
         getQuantityAndEmail(executedPayment);
 
+        credentials.setPaymentId(paymentId);
+        credentialsRepository.save(credentials);
+
         return executedPayment;
+    }
+
+    private PaymentCredentials verifyPaymentNotCompleted(String paymentId, String tutorEmail) throws PayPalRESTException {
+        PaymentCredentials paymentCredentials = credentialsRepository.findByTutorEmail(tutorEmail);
+        if (paymentCredentials == null) {
+            throw new NullPointerException(String.format("Payment credentials not found for tutorEmail: %s", tutorEmail));
+        } else if (paymentId.equals(paymentCredentials.getPaymentId())) {
+            throw new PayPalRESTException("Payment has been done already for this cart.");
+        }
+        return paymentCredentials;
     }
 
     private void getQuantityAndEmail(Payment executedPayment) {
