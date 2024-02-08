@@ -14,7 +14,6 @@ public class StudentCommentMapperImpl implements StudentCommentMapper {
         } else {
             StudentComment studentComment = new StudentComment();
             studentComment.setStudentEmail(studentCommentDto.getStudentEmail());
-            studentComment.setStudentName(studentCommentDto.getStudentName());
             studentComment.setValue(studentCommentDto.getValue());
             return studentComment;
         }
