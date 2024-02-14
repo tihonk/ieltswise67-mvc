@@ -35,7 +35,7 @@ public class CommentServiceImpl implements CommentService {
 
         if (lessonData != null && lessonData.getAllPaidLessons() > 0) {
             StudentComment comment = mapper.mapToStudentComment(studentCommentDto);
-            if (lessonData.getName().equals("User")) {
+            if (lessonData.getName() == null) {
                 comment.setStudentName("User" + lessonData.getUserId());
             } else {
                 comment.setStudentName(lessonData.getName());

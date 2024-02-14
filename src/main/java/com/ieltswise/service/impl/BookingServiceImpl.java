@@ -70,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
         if (isUsedTrialLessonByStudent(studentEmail)) {
             throw new BookingSessionException("Already used a trial lesson for email: " + studentEmail);
         } else {
-            final String studentName = sessionData.getStudentName() != null ? sessionData.getStudentName() : "User";
+            final String studentName = sessionData.getStudentName();
             final String eventLink = bookSession(sessionData, studentName);
             if (eventLink != null) {
                 saveStudentUsedTrialLesson(studentEmail, studentName);
