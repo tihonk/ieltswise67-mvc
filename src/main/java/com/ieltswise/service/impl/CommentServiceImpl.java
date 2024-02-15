@@ -2,6 +2,7 @@ package com.ieltswise.service.impl;
 
 import com.ieltswise.dto.StudentCommentDto;
 import com.ieltswise.entity.StudentComment;
+import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.mapper.StudentCommentMapper;
 import com.ieltswise.repository.StudentCommentRepository;
 import com.ieltswise.repository.UserLessonDataRepository;
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -30,10 +30,16 @@ public class CommentServiceImpl implements CommentService {
     }
 
     public StudentComment createComment(StudentCommentDto studentCommentDto) {
+        String email = studentCommentDto.getStudentEmail();
+        UserLessonData lessonData = userLessonDataRepository.findByEmail(email);
 
-        if (Optional.ofNullable(userLessonDataRepository.findByEmail(studentCommentDto.getStudentEmail())).isPresent()) {
-
+        if (lessonData != null && lessonData.getAllPaidLessons() > 0) {
             StudentComment comment = mapper.mapToStudentComment(studentCommentDto);
+            if (lessonData.getName() == null) {
+                comment.setStudentName("User" + lessonData.getUserId());
+            } else {
+                comment.setStudentName(lessonData.getName());
+            }
             comment.setCreated(LocalDateTime.now());
             try {
                 return commentRepository.save(comment);

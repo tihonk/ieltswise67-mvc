@@ -10,7 +10,13 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.model.*;
+import com.google.api.services.calendar.model.ConferenceData;
+import com.google.api.services.calendar.model.ConferenceSolutionKey;
+import com.google.api.services.calendar.model.CreateConferenceRequest;
+import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventAttendee;
+import com.google.api.services.calendar.model.EventDateTime;
+import com.google.api.services.calendar.model.EventReminder;
 import com.ieltswise.entity.SessionDataRequest;
 import com.ieltswise.entity.SessionDataResponse;
 import com.ieltswise.entity.UserLessonData;
@@ -90,7 +96,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Boolean isTrialAvailable(final String studentEmail){
+    public Boolean isTrialAvailable(final String studentEmail) {
         return !isUsedTrialLessonByStudent(studentEmail);
     }
 
@@ -119,7 +125,7 @@ public class BookingServiceImpl implements BookingService {
             newStudent.setUsedTrial(true);
             newStudent.setLastBookingDate(new Date());
             userLessonDataRepository.save(newStudent);
-        } else if(!student.getUsedTrial()) {
+        } else if (!student.getUsedTrial()) {
             student.setUsedTrial(true);
             student.setName(studentName);
             userLessonDataRepository.save(student);
@@ -167,7 +173,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private List<EventAttendee> prepareEventAttendees(final SessionDataRequest sessionData) {
-        final EventAttendee[] attendees = new EventAttendee[] {
+        final EventAttendee[] attendees = new EventAttendee[]{
                 new EventAttendee().setEmail(sessionData.getStudentEmail()),
                 new EventAttendee().setEmail(sessionData.getTutorEmail()).setResource(true).setOrganizer(true),
         };
@@ -201,7 +207,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private EventReminder[] createReminderOverrides() {
-        return new EventReminder[] {
+        return new EventReminder[]{
                 new EventReminder().setMethod("email").setMinutes(24 * 60),
                 new EventReminder().setMethod("popup").setMinutes(10),
         };
@@ -224,10 +230,10 @@ public class BookingServiceImpl implements BookingService {
 
     private String prepareEventDescription(String requestedService, String studentName) {
         return """
-                        <b>Student Name</b>\s
-                        %s<br>
-                        <b>Requested Service</b>\s
-                        %s"""
+                <b>Student Name</b>\s
+                %s<br>
+                <b>Requested Service</b>\s
+                %s"""
                 .formatted(studentName, requestedService);
     }
 
