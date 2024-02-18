@@ -45,11 +45,14 @@ public class StudentController {
         try {
             final Payment payment = payPalService.executePayment(sessionData.getPaymentId(), sessionData.getPayerID());
             if (payment.getState().equals("approved")) {
+                System.out.println("Payment confirmed by email " + sessionData.getStudentEmail());
                 return ResponseEntity.ok(calendarMailService.bookRegularSession(sessionData));
             } else {
+                System.out.println("Payment not confirmed by email " + sessionData.getStudentEmail());
                 return ResponseEntity.status(BAD_REQUEST).build();
             }
         } catch (PayPalRESTException e) {
+            System.out.println("Payment failed by email " + sessionData.getStudentEmail());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }

@@ -19,14 +19,13 @@ import java.time.LocalDateTime;
 @Table(name = "STUDENT_COMMENT")
 public class StudentComment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID", unique = true)
-    private Long id;
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private long id;
     @Column(name = "EMAIL", nullable = false)
-    private String studentEmail;
+    private String email;
     @Column(name = "NAME", nullable = false)
-    private String studentName;
-    @Column(name = "VALUE", nullable = false)
+    private String name;
+    @Column(name = "VALUE", nullable = false, length = 1000)
     private String value;
     @Column(nullable = false)
     private LocalDateTime created;
