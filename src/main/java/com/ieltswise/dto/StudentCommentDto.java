@@ -6,6 +6,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class StudentCommentDto {
-    private String email;
+    private String studentEmail;
     private String value;
 }

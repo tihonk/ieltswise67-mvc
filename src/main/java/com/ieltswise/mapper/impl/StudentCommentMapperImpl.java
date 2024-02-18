@@ -13,7 +13,7 @@ public class StudentCommentMapperImpl implements StudentCommentMapper {
             return null;
         } else {
             StudentComment studentComment = new StudentComment();
-            studentComment.setEmail(studentCommentDto.getEmail());
+            studentComment.setStudentEmail(studentCommentDto.getStudentEmail());
             studentComment.setValue(studentCommentDto.getValue());
             return studentComment;
         }
