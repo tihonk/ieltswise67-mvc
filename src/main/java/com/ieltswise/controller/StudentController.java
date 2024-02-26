@@ -1,7 +1,6 @@
 package com.ieltswise.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ieltswise.entity.SessionDataRequest;
+import com.ieltswise.controller.request.SessionDataRequest;
 import com.ieltswise.exception.BookingSessionException;
 import com.ieltswise.service.BookingService;
 import com.ieltswise.service.PayPalPaymentService;
@@ -9,9 +8,18 @@ import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.PAYMENT_REQUIRED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -30,8 +38,8 @@ public class StudentController {
     }
 
     @CrossOrigin(origins = "*")
-    @PostMapping(value = "/bookTrialSession", consumes={APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> bookTrialSession(@RequestBody SessionDataRequest sessionData) throws JsonProcessingException {
+    @PostMapping(value = "/bookTrialSession", consumes = {APPLICATION_JSON_VALUE})
+    public ResponseEntity<?> bookTrialSession(@RequestBody SessionDataRequest sessionData) {
         try {
             return ResponseEntity.ok(calendarMailService.bookTrialSession(sessionData));
         } catch (BookingSessionException e) {
@@ -40,7 +48,7 @@ public class StudentController {
     }
 
     @CrossOrigin(origins = "*")
-    @PostMapping(value = "/bookRegularSession", consumes={APPLICATION_JSON_VALUE})
+    @PostMapping(value = "/bookRegularSession", consumes = {APPLICATION_JSON_VALUE})
     public ResponseEntity<?> bookRegularSession(@RequestBody SessionDataRequest sessionData) {
         try {
             final Payment payment = payPalService.executePayment(sessionData.getPaymentId(), sessionData.getPayerID());

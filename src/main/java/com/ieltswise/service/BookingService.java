@@ -1,7 +1,7 @@
 package com.ieltswise.service;
 
-import com.ieltswise.entity.SessionDataRequest;
-import com.ieltswise.entity.SessionDataResponse;
+import com.ieltswise.controller.request.SessionDataRequest;
+import com.ieltswise.controller.response.SessionDataResponse;
 import com.ieltswise.exception.BookingSessionException;
 
 public interface BookingService {

@@ -2,7 +2,9 @@ package com.ieltswise.service.impl;
 
 import com.ieltswise.entity.Event;
 import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.entity.schedule.TimeSlot;
 import com.ieltswise.service.GoogleEventsService;
+import com.ieltswise.service.ScheduleService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +18,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -39,6 +44,7 @@ import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 @Service
 public class GoogleEventsServiceImpl implements GoogleEventsService {
+    private static final String ITEMS = "items";
     private static final String JSON_START = "start";
     private static final String JSON_END = "end";
     private static final String JSON_STATUS = "status";
@@ -49,17 +55,19 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
     @Value("${google.credentials.key}")
     private String googleCredentialKey;
 
-    @Autowired
-    public GoogleEventsServiceImpl() {
-    }
+    private final ScheduleService scheduleService;
 
+    @Autowired
+    public GoogleEventsServiceImpl(ScheduleService scheduleService) {
+        this.scheduleService = scheduleService;
+    }
 
     @Override
     public List<Event> getEvents(String tutorID) {
         try {
             URL obj = new URL("https://www.googleapis.com/calendar/v3/calendars/" + tutorID
                     + "/events?key=" + googleCredentialKey);
-            return extractEvents(createJSONObjectResponse(obj).getJSONArray("items"));
+            return extractEvents(createJSONObjectResponse(obj).getJSONArray(ITEMS));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -70,6 +78,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         for (int i = 0; i < eventItems.length(); i++) {
             JSONObject eventItem = eventItems.getJSONObject(i);
             if (!eventItem.getString(JSON_STATUS).equals(STATUS_CANCELED)) {
+
                 JSONObject start = eventItem.getJSONObject(JSON_START);
                 JSONObject end = eventItem.getJSONObject(JSON_END);
 
@@ -77,7 +86,6 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
                 event.setStartDate(extractDate(start));
                 event.setEndDate(extractDate(end));
                 event.setStatus(eventItem.getString(JSON_STATUS));
-
                 events.add(event);
             }
         }
@@ -98,15 +106,19 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
     }
 
     @Override
-    public List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month) {
+    public List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month)
+            throws RuntimeException {
+
+        Map<DayOfWeek, List<TimeSlot>> schedule = scheduleService.getSchedulesTutor(tutorId).getTimeInfo();
+
         try {
             ZonedDateTime startOfMonth = of(year, month).atDay(1).atStartOfDay(systemDefault());
             ZonedDateTime endOfMonth = of(year, month).atEndOfMonth().atStartOfDay(systemDefault());
 
             URL obj = new URL(createUrl(tutorId, startOfMonth, endOfMonth));
 
-            return findAllEventsByYearAndMonth(createJSONObjectResponse(obj).getJSONArray("items"), startOfMonth,
-                    endOfMonth);
+            return findAllEventsByYearAndMonth(createJSONObjectResponse(obj).getJSONArray(ITEMS), startOfMonth,
+                    endOfMonth, schedule);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -118,7 +130,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         con.setRequestProperty("User-Agent", USER_AGENT);
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
-        StringBuffer response = new StringBuffer();
+        StringBuilder response = new StringBuilder();
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
         }
@@ -135,14 +147,22 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return apiUrl + "?timeMin=" + encodedTimeMin + "&timeMax=" + encodedTimeMax + "&key=" + googleCredentialKey;
     }
 
-    private List<FreeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray, ZonedDateTime startOfMonth,
-                                                                       ZonedDateTime endOfMonth) {
+
+    private List<FreeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray,
+                                                                       ZonedDateTime startOfMonth,
+                                                                       ZonedDateTime endOfMonth,
+                                                                       Map<DayOfWeek, List<TimeSlot>> schedule) {
 
         TreeMap<Long, TreeMap<Long, Boolean>> dateClockStatus = new TreeMap<>();
+
+        int offset = startOfMonth.getOffset().getTotalSeconds() / 3600;
+
         TreeMap<Long, Boolean> hourStatus;
 
         for (int i = 0; i < jsonArray.length(); i++) {
+
             JSONObject eventItem = jsonArray.getJSONObject(i);
+
             if (!eventItem.getString(JSON_STATUS).equals(STATUS_CANCELED)) {
 
                 JSONObject start = eventItem.getJSONObject(JSON_START);
@@ -167,17 +187,13 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
                         instant = eventStartDate.with(LocalTime.MIDNIGHT).toInstant();
                         day = instant.toEpochMilli();
                         hourStatus = new TreeMap<>();
-
-
                         check = eventStartDate.toLocalDate().atStartOfDay().atZone(eventStartDate.getZone()).plusDays(1).minusSeconds(1);
                     }
 
                     ZonedDateTime utcDateTime = eventStartDate.withMinute(0).withZoneSameInstant(java.time.ZoneOffset.UTC);
                     Long timestamp = utcDateTime.toEpochSecond() * 1000;
 
-
                     hourStatus.put(timestamp, true);
-
 
                     if (eventStartDate.withMinute(0).equals(Objects.requireNonNull(eventEndDate).withMinute(0)))
                         break;
@@ -205,16 +221,27 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
         for (ZonedDateTime dateOne = startOfMonth.with(LocalTime.MIDNIGHT); !dateOne.isAfter(endOfMonth); dateOne = dateOne.plusDays(1)) {
 
-            Instant instant = dateOne.toInstant();
-            Long dateToCheck = instant.toEpochMilli();
+            Long dateToCheck = dateOne.toInstant().toEpochMilli();
+            ZonedDateTime utcDateTime = Instant.ofEpochMilli(dateToCheck).atZone(ZoneId.of("UTC"));
 
+            hourStatus = getTutorSchedule(utcDateTime, schedule, offset);
             if (dateClockStatus.containsKey(dateToCheck)) {
                 TreeMap<Long, Boolean> existingValuesTime = dateClockStatus.get(dateToCheck);
+                existingValuesTime.putAll(hourStatus);
+                dateClockStatus.put(dateToCheck, existingValuesTime);
+            } else
+                dateClockStatus.put(dateToCheck, hourStatus);
+
+            if (dateClockStatus.containsKey(dateToCheck)) {
+
+                TreeMap<Long, Boolean> existingValuesTime = dateClockStatus.get(dateToCheck);
+
                 for (int i = 0; i < 24; i++) {
 
                     ZonedDateTime currentHour = dateOne.withHour(i);
-                    ZonedDateTime utcDateTime = currentHour.withZoneSameInstant(java.time.ZoneOffset.UTC);
-                    Long timestamp = utcDateTime.toEpochSecond() * 1000;
+                    Instant instant = currentHour.toInstant();
+                    Long timestamp = instant.toEpochMilli();
+
                     if (!existingValuesTime.containsKey(timestamp)) {
                         existingValuesTime.put(timestamp, false);
                     }
@@ -222,16 +249,66 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
             } else {
                 hourStatus = new TreeMap<>();
                 for (int i = 0; i < 24; i++) {
-
                     ZonedDateTime currentHour = dateOne.withHour(i);
-                    ZonedDateTime utcDateTime = currentHour.withZoneSameInstant(java.time.ZoneOffset.UTC);
-                    Long timestamp = utcDateTime.toEpochSecond() * 1000;
+                    Instant instant = currentHour.toInstant();
+                    Long timestamp = instant.toEpochMilli();
                     hourStatus.put(timestamp, false);
                 }
                 dateClockStatus.put(dateToCheck, hourStatus);
             }
         }
         return getAllHoursAndTheirStatusForAllDaysOfTheMonth(dateClockStatus);
+    }
+
+
+    private TreeMap<Long, Boolean> getTutorSchedule(ZonedDateTime utcDateTime, Map<DayOfWeek,
+            List<TimeSlot>> schedule, int offset) {
+
+        TreeMap<Long, Boolean> hourStatus = new TreeMap<>();
+        DayOfWeek dayOfWeek = utcDateTime.getDayOfWeek();
+
+        List<TimeSlot> daySchedule;
+        daySchedule = schedule.get(dayOfWeek);
+
+        if (offset > 0) {
+            for (int i = 24 - offset; i < 24; i++) {
+                getOccupiedHours(daySchedule, i, utcDateTime, hourStatus);
+            }
+
+            daySchedule = schedule.get(dayOfWeek.plus(1));
+
+            for (int i = 0; i < 24 - offset; i++) {
+                getOccupiedHours(daySchedule, i, utcDateTime.plusDays(1), hourStatus);
+            }
+        } else {
+            for (int i = -offset; i < 24; i++) {
+                getOccupiedHours(daySchedule, i, utcDateTime, hourStatus);
+            }
+
+            daySchedule = schedule.get(dayOfWeek.plus(1));
+
+            for (int i = 0; i < -offset; i++) {
+                getOccupiedHours(daySchedule, i, utcDateTime.plusDays(1), hourStatus);
+            }
+        }
+        return hourStatus;
+    }
+
+
+    private void getOccupiedHours(List<TimeSlot> daySchedule, int i, ZonedDateTime utcDateTime,
+                                  TreeMap<Long, Boolean> hourStatus) {
+
+        TimeSlot timeSlot = daySchedule.get(i);
+
+        if (timeSlot.isAvailability()) {
+            LocalTime localTime = LocalTime.parse(timeSlot.getTime());
+            long clock = localTime.atDate(LocalDate.from(utcDateTime))
+                    .atZone(ZoneOffset.UTC)
+                    .toInstant()
+                    .toEpochMilli();
+
+            hourStatus.put(clock, true);
+        }
     }
 
 

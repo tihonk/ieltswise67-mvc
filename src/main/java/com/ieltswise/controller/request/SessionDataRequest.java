@@ -1,4 +1,4 @@
-package com.ieltswise.entity;
+package com.ieltswise.controller.request;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
