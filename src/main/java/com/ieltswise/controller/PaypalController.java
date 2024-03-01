@@ -2,6 +2,7 @@ package com.ieltswise.controller;
 
 import com.ieltswise.service.PayPalPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,9 @@ import static org.springframework.http.HttpStatus.OK;
 public class PaypalController {
     private final PayPalPaymentService payPalService;
 
+    @Value("${google.email.tutor}")
+    private String tutorEmail;
+
     @Autowired
     public PaypalController(PayPalPaymentService payPalService) {
         this.payPalService = payPalService;
@@ -26,7 +30,8 @@ public class PaypalController {
     @GetMapping("/paymentLink")
     public ResponseEntity<String> getPaymentLink(@RequestParam("successUrl") String successUrl,
                                                  @RequestParam("cancelUrl") String cancelUrl,
-                                                 @RequestParam("tutorEmail") String tutorEmail,
+                                                 // TODO:
+                                                 //@RequestParam("tutorEmail") String tutorEmail,
                                                  @RequestParam("studentEmail") String studentEmail) {
         final String paymentLink = payPalService.preparePaymentLink(successUrl, cancelUrl, tutorEmail, studentEmail);
         if (paymentLink != null) {

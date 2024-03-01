@@ -7,6 +7,7 @@ import com.ieltswise.service.PayPalPaymentService;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +31,9 @@ public class StudentController {
 
     private final PayPalPaymentService payPalService;
 
+    @Value("${google.email.tutor}")
+    private String tutorEmail;
+
     @Autowired
     StudentController(BookingService calendarMailService,
                       PayPalPaymentService payPalService) {
@@ -51,8 +55,9 @@ public class StudentController {
     @PostMapping(value = "/bookRegularSession", consumes = {APPLICATION_JSON_VALUE})
     public ResponseEntity<?> bookRegularSession(@RequestBody SessionDataRequest sessionData) {
         try {
+            // TODO: Change tutorEmail to value from sessionData
             final Payment payment = payPalService.executePayment(sessionData.getPaymentId(), sessionData.getPayerID(),
-                    sessionData.getTutorEmail());
+                    tutorEmail);
             if (payment.getState().equals("approved")) {
                 return ResponseEntity.ok(calendarMailService.bookRegularSession(sessionData));
             } else {
