@@ -1,9 +1,11 @@
 package com.ieltswise.service.impl;
 
 import com.ieltswise.controller.request.TutorCreateRequest;
+import com.ieltswise.entity.PaymentCredentials;
 import com.ieltswise.entity.TutorInfo;
 import com.ieltswise.entity.schedule.Schedule;
 import com.ieltswise.mapper.TutorMapper;
+import com.ieltswise.repository.PaymentCredentialsRepository;
 import com.ieltswise.repository.ScheduleRepository;
 import com.ieltswise.repository.TutorInfoRepository;
 import com.ieltswise.service.TutorInfoService;
@@ -12,16 +14,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 public class TutorInfoServiceImpl implements TutorInfoService {
-
+    private final PaymentCredentialsRepository paymentCredentialsRepository;
     private final TutorInfoRepository tutorInfoRepository;
     private final ScheduleRepository scheduleRepository;
     private final TutorMapper tutorMapper;
 
     @Autowired
-    public TutorInfoServiceImpl(TutorInfoRepository tutorInfoRepository, ScheduleRepository scheduleRepository, TutorMapper tutorMapper) {
+    public TutorInfoServiceImpl(PaymentCredentialsRepository paymentCredentialsRepository,
+                                TutorInfoRepository tutorInfoRepository,
+                                ScheduleRepository scheduleRepository,
+                                TutorMapper tutorMapper) {
+        this.paymentCredentialsRepository = paymentCredentialsRepository;
         this.tutorInfoRepository = tutorInfoRepository;
         this.scheduleRepository = scheduleRepository;
         this.tutorMapper = tutorMapper;
@@ -29,7 +36,7 @@ public class TutorInfoServiceImpl implements TutorInfoService {
 
     @Override
     @Transactional
-    public TutorInfo createTutor(TutorCreateRequest tutorCreateRequest) {
+    public Optional<TutorInfo> createTutor(TutorCreateRequest tutorCreateRequest) {
         TutorInfo tutorInfo = tutorMapper.mapTutorCreateRequestToTutorInfo(tutorCreateRequest);
         tutorInfo.setCreated(Instant.now().toEpochMilli());
         tutorInfoRepository.save(tutorInfo);
@@ -40,6 +47,13 @@ public class TutorInfoServiceImpl implements TutorInfoService {
                 .build();
         scheduleRepository.save(schedule);
 
-        return tutorInfo;
+        PaymentCredentials paymentCredentials = PaymentCredentials.builder()
+                .tutor(tutorInfo)
+                .clientId(tutorCreateRequest.getClientId())
+                .clientSecret(tutorCreateRequest.getClientSecret())
+                .build();
+        paymentCredentialsRepository.save(paymentCredentials);
+
+        return Optional.of(tutorInfo);
     }
 }

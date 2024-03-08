@@ -1,6 +1,5 @@
 package com.ieltswise.entity;
 
-
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ieltswise.entity.schedule.Schedule;
 import jakarta.persistence.CascadeType;
@@ -35,4 +34,7 @@ public class TutorInfo {
     @OneToOne(mappedBy = "tutor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
     private Schedule schedule;
+    @OneToOne(mappedBy = "tutor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private PaymentCredentials paymentCredentials;
 }

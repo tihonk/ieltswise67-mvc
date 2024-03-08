@@ -1,20 +1,16 @@
 package com.ieltswise.controller;
 
-
 import com.ieltswise.controller.request.ScheduleUpdateRequest;
 import com.ieltswise.controller.request.TutorCreateRequest;
+import com.ieltswise.dto.PaymentCredentialsDto;
 import com.ieltswise.entity.Event;
+import com.ieltswise.entity.PaymentCredentials;
 import com.ieltswise.entity.TutorInfo;
 import com.ieltswise.entity.schedule.Schedule;
 import com.ieltswise.service.GoogleEventsService;
+import com.ieltswise.service.PaymentCredentialService;
 import com.ieltswise.service.ScheduleService;
 import com.ieltswise.service.TutorInfoService;
-import com.ieltswise.dto.PaymentCredentialsDto;
-import com.ieltswise.entity.Event;
-import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
-import com.ieltswise.entity.PaymentCredentials;
-import com.ieltswise.service.GoogleEventsService;
-import com.ieltswise.service.PaymentCredentialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.time.ZonedDateTime.now;
 
@@ -41,7 +38,10 @@ public class TutorController {
     private final PaymentCredentialService paymentCredentialService;
 
     @Autowired
-    TutorController(GoogleEventsService googleEventsService, TutorInfoService tutorInfoService, ScheduleService scheduleService, PaymentCredentialService paymentCredentialService) {
+    TutorController(GoogleEventsService googleEventsService,
+                    TutorInfoService tutorInfoService,
+                    ScheduleService scheduleService,
+                    PaymentCredentialService paymentCredentialService) {
         this.googleEventsService = googleEventsService;
         this.tutorInfoService = tutorInfoService;
         this.scheduleService = scheduleService;
@@ -72,7 +72,7 @@ public class TutorController {
     @PostMapping()
     public ResponseEntity<?> createTutor(@RequestBody TutorCreateRequest tutorCreateRequest) {
         try {
-            TutorInfo createdTutor = tutorInfoService.createTutor(tutorCreateRequest);
+            Optional<TutorInfo> createdTutor = tutorInfoService.createTutor(tutorCreateRequest);
             return ResponseEntity.ok(createdTutor);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -100,13 +100,13 @@ public class TutorController {
         }
     }
 
-    @PostMapping("/payment")
-    public ResponseEntity<?> savePaymentInformation(@RequestBody PaymentCredentialsDto paymentCredentialsDto) {
+    @PutMapping("/payment")
+    public ResponseEntity<?> updatePaymentInformation(@RequestBody PaymentCredentialsDto paymentCredentialsDto) {
         try {
-            PaymentCredentials paymentCredentials = paymentCredentialService.savePaymentInfo(paymentCredentialsDto);
+            PaymentCredentials paymentCredentials = paymentCredentialService.updatePaymentInfo(paymentCredentialsDto);
             return ResponseEntity.ok(paymentCredentials);
         } catch (Exception e) {
-            return new ResponseEntity<>("Failed to save comment", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Failed to update payment information", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

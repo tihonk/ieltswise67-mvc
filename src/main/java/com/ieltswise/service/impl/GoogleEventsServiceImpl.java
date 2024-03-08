@@ -41,7 +41,6 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.Locale.ROOT;
 import static org.apache.http.protocol.HTTP.USER_AGENT;
 
-
 @Service
 public class GoogleEventsServiceImpl implements GoogleEventsService {
     private static final String ITEMS = "items";

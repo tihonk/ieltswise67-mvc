@@ -14,4 +14,6 @@ public class TutorCreateRequest {
     private String email;
     private String name;
     private Map<DayOfWeek, List<TimeSlot>> updatedTimeInfo;
+    private String clientId;
+    private String clientSecret;
 }

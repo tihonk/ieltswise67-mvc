@@ -144,10 +144,9 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
     }
 
     private PaymentCredentials verifyPaymentNotCompleted(String paymentId, String tutorEmail) throws PayPalRESTException {
-        PaymentCredentials paymentCredentials = credentialsRepository.findByTutorEmail(tutorEmail);
-        if (paymentCredentials == null) {
-            throw new IllegalArgumentException(String.format("Payment credentials not found for tutorEmail: %s", tutorEmail));
-        } else if (paymentId.equals(paymentCredentials.getPaymentId())) {
+        PaymentCredentials paymentCredentials = credentialsRepository.findByTutorEmail(tutorEmail).orElseThrow(() ->
+                new IllegalArgumentException(String.format("Payment credentials not found for tutorEmail: %s", tutorEmail)));
+        if (paymentId.equals(paymentCredentials.getPaymentId())) {
             throw new PayPalRESTException("Payment has been done already for this cart.");
         }
         return paymentCredentials;

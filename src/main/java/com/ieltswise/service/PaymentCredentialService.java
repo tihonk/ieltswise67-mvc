@@ -5,10 +5,10 @@ import com.ieltswise.entity.PaymentCredentials;
 
 public interface PaymentCredentialService {
     /**
-     * Saving information about payment credentials based on the transferred DTO
+     * Updating information about payment credentials based on the transferred DTO
      *
      * @param paymentCredentialsDto DTO with data on payment credentials
-     * @return saved payment data
+     * @return updated payment data
      */
-    PaymentCredentials savePaymentInfo(PaymentCredentialsDto paymentCredentialsDto);
+    PaymentCredentials updatePaymentInfo(PaymentCredentialsDto paymentCredentialsDto);
 }

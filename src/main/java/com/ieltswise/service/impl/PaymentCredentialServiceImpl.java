@@ -14,18 +14,19 @@ public class PaymentCredentialServiceImpl implements PaymentCredentialService {
     private final PaymentCredentialsMapper mapper;
 
     @Autowired
-    public PaymentCredentialServiceImpl(PaymentCredentialsRepository paymentCredentialsRepository, PaymentCredentialsMapper mapper) {
+    public PaymentCredentialServiceImpl(PaymentCredentialsRepository paymentCredentialsRepository,
+                                        PaymentCredentialsMapper mapper) {
         this.paymentCredentialsRepository = paymentCredentialsRepository;
         this.mapper = mapper;
     }
 
     @Override
-    public PaymentCredentials savePaymentInfo(PaymentCredentialsDto paymentCredentialsDto) {
+    public PaymentCredentials updatePaymentInfo(PaymentCredentialsDto paymentCredentialsDto) {
         try {
             PaymentCredentials paymentCredentials = mapper.mapToPaymentCredentials(paymentCredentialsDto);
             return paymentCredentialsRepository.save(paymentCredentials);
         } catch (Exception e) {
-            System.err.printf("Failed to save payment credentials: %s", e.getMessage());
+            System.err.printf("Failed to update payment credentials: %s", e.getMessage());
             throw new RuntimeException();
         }
     }
