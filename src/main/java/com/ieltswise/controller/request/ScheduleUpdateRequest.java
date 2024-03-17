@@ -11,5 +11,6 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 public class ScheduleUpdateRequest {
+
     private Map<DayOfWeek, List<TimeSlot>> updatedTimeInfo;
 }

@@ -4,6 +4,7 @@ import com.ieltswise.controller.request.TutorCreateRequest;
 import com.ieltswise.entity.TutorInfo;
 
 public interface TutorMapper {
+
     /**
      * Maps a TutorCreateRequest to a TutorInfo entity
      *

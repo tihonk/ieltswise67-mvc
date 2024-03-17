@@ -1,7 +1,8 @@
 package com.ieltswise.mapper.impl;
 
-import com.ieltswise.dto.PaymentCredentialsDto;
+import com.ieltswise.controller.request.PaymentCredentialsRequest;
 import com.ieltswise.entity.PaymentCredentials;
+import com.ieltswise.exception.TutorEmailNotFoundException;
 import com.ieltswise.mapper.PaymentCredentialsMapper;
 import com.ieltswise.repository.PaymentCredentialsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PaymentCredentialsMapperImpl implements PaymentCredentialsMapper {
+
     private final PaymentCredentialsRepository paymentCredentialsRepository;
 
     @Autowired
@@ -17,15 +19,16 @@ public class PaymentCredentialsMapperImpl implements PaymentCredentialsMapper {
     }
 
     @Override
-    public PaymentCredentials mapToPaymentCredentials(PaymentCredentialsDto paymentCredentialsDto) {
-        if (paymentCredentialsDto == null) {
+    public PaymentCredentials mapToPaymentCredentials(PaymentCredentialsRequest paymentCredentialsRequest)
+            throws TutorEmailNotFoundException {
+        if (paymentCredentialsRequest == null) {
             return null;
         } else {
-            String email = paymentCredentialsDto.getTutorEmail();
+            String email = paymentCredentialsRequest.getTutorEmail();
             PaymentCredentials paymentCredentials = paymentCredentialsRepository.findByTutorEmail(email).orElseThrow(() ->
-                    new RuntimeException("Tutor with email " + email + " not found"));
-            paymentCredentials.setClientId(paymentCredentialsDto.getClientId());
-            paymentCredentials.setClientSecret(paymentCredentialsDto.getClientSecret());
+                    new TutorEmailNotFoundException(String.format("Tutor with email %s not found", email)));
+            paymentCredentials.setClientId(paymentCredentialsRequest.getClientId());
+            paymentCredentials.setClientSecret(paymentCredentialsRequest.getClientSecret());
             return paymentCredentials;
         }
     }

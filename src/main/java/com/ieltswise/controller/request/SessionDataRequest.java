@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class SessionDataRequest {
+
     private String tutorEmail;
     private String studentEmail;
     private String studentName;

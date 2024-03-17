@@ -11,6 +11,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 public class TutorCreateRequest {
+
     private String email;
     private String name;
     private Map<DayOfWeek, List<TimeSlot>> updatedTimeInfo;

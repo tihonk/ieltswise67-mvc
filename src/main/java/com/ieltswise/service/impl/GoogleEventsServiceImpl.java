@@ -1,6 +1,6 @@
 package com.ieltswise.service.impl;
 
-import com.ieltswise.entity.Event;
+import com.ieltswise.controller.response.Event;
 import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
 import com.ieltswise.entity.schedule.TimeSlot;
 import com.ieltswise.service.GoogleEventsService;
@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 import static java.time.YearMonth.of;
-import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.parse;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.Locale.ROOT;
@@ -43,6 +42,7 @@ import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 @Service
 public class GoogleEventsServiceImpl implements GoogleEventsService {
+
     private static final String ITEMS = "items";
     private static final String JSON_START = "start";
     private static final String JSON_END = "end";
@@ -99,27 +99,26 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
             return parse(dateTime.getString(JSON_DATETIME), formatter);
         } else if (dateTime.toMap().get(JSON_DATE) != null) {
             LocalDate localDate = LocalDate.parse(dateTime.getString(JSON_DATE));
-            return localDate.atStartOfDay(systemDefault());
+            return localDate.atStartOfDay(ZoneId.of("UTC"));
         }
         return null;
     }
 
     @Override
     public List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month)
-            throws RuntimeException {
+            throws Exception {
 
         Map<DayOfWeek, List<TimeSlot>> schedule = scheduleService.getSchedulesTutor(tutorId).getTimeInfo();
 
         try {
-            ZonedDateTime startOfMonth = of(year, month).atDay(1).atStartOfDay(systemDefault());
-            ZonedDateTime endOfMonth = of(year, month).atEndOfMonth().atStartOfDay(systemDefault());
+            ZonedDateTime startOfMonth = of(year, month).atDay(1).atStartOfDay(ZoneId.of("UTC"));
+            ZonedDateTime endOfMonth = of(year, month).atEndOfMonth().atStartOfDay(ZoneId.of("UTC"));
 
-            URL obj = new URL(createUrl(tutorId, startOfMonth, endOfMonth));
-
-            return findAllEventsByYearAndMonth(createJSONObjectResponse(obj).getJSONArray(ITEMS), startOfMonth,
+            URL url = new URL(createUrl(tutorId, startOfMonth, endOfMonth));
+            return findAllEventsByYearAndMonth(createJSONObjectResponse(url).getJSONArray(ITEMS), startOfMonth,
                     endOfMonth, schedule);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new Exception(e);
         }
     }
 
@@ -146,8 +145,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
         return apiUrl + "?timeMin=" + encodedTimeMin + "&timeMax=" + encodedTimeMax + "&key=" + googleCredentialKey;
     }
 
-
-    private List<FreeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray jsonArray,
+    private List<FreeAndBusyHoursOfTheDay> findAllEventsByYearAndMonth(JSONArray eventsArray,
                                                                        ZonedDateTime startOfMonth,
                                                                        ZonedDateTime endOfMonth,
                                                                        Map<DayOfWeek, List<TimeSlot>> schedule) {
@@ -158,9 +156,9 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
         TreeMap<Long, Boolean> hourStatus;
 
-        for (int i = 0; i < jsonArray.length(); i++) {
+        for (int i = 0; i < eventsArray.length(); i++) {
 
-            JSONObject eventItem = jsonArray.getJSONObject(i);
+            JSONObject eventItem = eventsArray.getJSONObject(i);
 
             if (!eventItem.getString(JSON_STATUS).equals(STATUS_CANCELED)) {
 
@@ -172,16 +170,18 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
                 TreeMap<Long, TreeMap<Long, Boolean>> temporarily = new TreeMap<>();
 
-                Instant instant = Objects.requireNonNull(eventStartDate).with(LocalTime.MIDNIGHT).toInstant();
+                ZonedDateTime eventUtcStartDate = Objects.requireNonNull(eventStartDate).withZoneSameInstant(ZoneOffset.UTC).toLocalDate().atStartOfDay(ZoneOffset.UTC);
+
+                Instant instant = eventUtcStartDate.toInstant();
                 long day = instant.toEpochMilli();
 
                 hourStatus = new TreeMap<>();
 
-                ZonedDateTime check = eventStartDate.toLocalDate().atStartOfDay().atZone(eventStartDate.getZone()).plusDays(1).minusSeconds(1);
+                ZonedDateTime check = eventUtcStartDate.toLocalDate().atStartOfDay().atZone(eventUtcStartDate.getZone()).plusDays(1).minusSeconds(1);
 
                 while (eventStartDate.isBefore(eventEndDate)) {
 
-                    if (eventStartDate.isAfter(check)) {
+                    if (eventUtcStartDate.isAfter(check)) {
                         temporarily.put(day, hourStatus);
                         instant = eventStartDate.with(LocalTime.MIDNIGHT).toInstant();
                         day = instant.toEpochMilli();

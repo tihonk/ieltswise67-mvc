@@ -28,6 +28,7 @@ import java.util.Map;
 @NoArgsConstructor
 @Table(name = "SCHEDULE")
 public class Schedule {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true)

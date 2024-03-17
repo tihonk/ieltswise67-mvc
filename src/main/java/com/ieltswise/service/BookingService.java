@@ -5,6 +5,7 @@ import com.ieltswise.controller.response.SessionDataResponse;
 import com.ieltswise.exception.BookingSessionException;
 
 public interface BookingService {
+
     /**
      * A method for booking a free trial lesson with a tutor in Google Calendar
      * @param sessionData contains information about the participants and the time of the planned event

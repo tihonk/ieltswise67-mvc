@@ -1,0 +1,65 @@
+[
+  {
+    "status": "confirmed",
+    "start": {
+      "dateTime": "2025-01-06T11:00:00+03:00"
+    },
+    "end": {
+      "dateTime": "2025-01-06T15:00:00+03:00"
+    }
+  },
+  {
+    "status": "confirmed",
+    "start": {
+      "dateTime": "2025-01-08T06:00:00+03:00"
+    },
+    "end": {
+      "dateTime": "2025-01-08T07:00:00+03:00"
+    }
+  },
+  {
+    "status": "confirmed",
+    "start": {
+      "dateTime": "2025-01-12T00:00:00+03:00"
+    },
+    "end": {
+      "dateTime": "2025-01-12T00:45:00+03:00"
+    }
+  },
+  {
+    "status": "confirmed",
+    "start": {
+      "dateTime": "2025-01-14T07:30:00+03:00"
+    },
+    "end": {
+      "dateTime": "2025-01-14T10:30:00+03:00"
+    }
+  },
+  {
+    "status": "confirmed",
+    "start": {
+      "dateTime": "2025-01-15T23:30:00+03:00"
+    },
+    "end": {
+      "dateTime": "2025-01-16T00:30:00+03:00"
+    }
+  },
+  {
+    "status": "confirmed",
+    "start": {
+      "dateTime": "2025-01-17T04:30:00+03:00"
+    },
+    "end": {
+      "dateTime": "2025-01-18T13:30:00+03:00"
+    }
+  },
+  {
+    "status": "confirmed",
+    "start": {
+      "date": "2025-01-22"
+    },
+    "end": {
+      "date": "2025-01-23"
+    }
+  }
+]

@@ -1,7 +1,9 @@
 package com.ieltswise.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +14,9 @@ import java.util.Map;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class FreeAndBusyHoursOfTheDay {
+
     private Long date;
     private List<Map<String, Object>> time;
 }

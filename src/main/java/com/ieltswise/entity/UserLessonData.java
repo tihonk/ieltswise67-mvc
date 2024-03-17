@@ -18,6 +18,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Table(name = "USER_LESSON_DATA")
 public class UserLessonData {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true)

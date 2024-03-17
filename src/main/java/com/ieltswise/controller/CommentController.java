@@ -1,6 +1,6 @@
 package com.ieltswise.controller;
 
-import com.ieltswise.dto.StudentCommentDto;
+import com.ieltswise.controller.request.StudentCommentRequest;
 import com.ieltswise.entity.StudentComment;
 import com.ieltswise.repository.StudentCommentRepository;
 import com.ieltswise.service.CommentService;
@@ -19,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/comments")
 public class CommentController {
+
     private final CommentService commentService;
     private final StudentCommentRepository commentRepository;
 
@@ -37,9 +38,9 @@ public class CommentController {
 
     @CrossOrigin(origins = "*")
     @PostMapping()
-    ResponseEntity<?> createComment(@RequestBody StudentCommentDto commentDto) {
+    ResponseEntity<?> createComment(@RequestBody StudentCommentRequest studentCommentRequest) {
         try {
-            StudentComment comment = commentService.createComment(commentDto);
+            StudentComment comment = commentService.createComment(studentCommentRequest);
             if (comment != null)
                 return new ResponseEntity<>(comment, HttpStatus.CREATED);
             else

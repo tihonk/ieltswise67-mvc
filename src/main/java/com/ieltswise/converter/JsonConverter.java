@@ -22,7 +22,7 @@ public class JsonConverter implements AttributeConverter<Map<DayOfWeek, List<Tim
         try {
             return objectMapper.writeValueAsString(attribute);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            System.out.println("Failed to convert Map to JSON string: " + e.getMessage());
             return null;
         }
     }
@@ -33,11 +33,10 @@ public class JsonConverter implements AttributeConverter<Map<DayOfWeek, List<Tim
             return null;
         }
         try {
-            TypeReference<HashMap<DayOfWeek, List<TimeSlot>>> typeReference = new TypeReference<>() {
-            };
+            TypeReference<HashMap<DayOfWeek, List<TimeSlot>>> typeReference = new TypeReference<>() {};
             return objectMapper.readValue(dbData, typeReference);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            System.out.println("Failed to convert JSON string to Map: " + e.getMessage());
             return null;
         }
     }

@@ -4,6 +4,7 @@ import com.paypal.base.rest.AccessToken;
 import com.paypal.base.rest.PayPalRESTException;
 
 public interface PaymentTokenService {
+
     /**
      * Obtaining an access token based on email.
      *

@@ -1,7 +1,6 @@
 package com.ieltswise.service;
 
-
-import com.ieltswise.entity.Event;
+import com.ieltswise.controller.response.Event;
 import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
 
 import java.util.List;
@@ -17,7 +16,7 @@ public interface GoogleEventsService {
      * @param year    year
      * @param month   month number
      * @return List<FreeAndBusyHoursOfTheDay>
-     * @throws RuntimeException if there are problems when executing a request or processing data
+     * @throws Exception if there are problems when executing a request or processing data
      */
-    List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month) throws RuntimeException;
+    List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month) throws Exception;
 }

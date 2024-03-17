@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentTokenServiceImpl implements PaymentTokenService {
+
     private final PaymentCredentialsRepository paymentCredentialsRepository;
     private final PaypalConfig paypalConfig;
 

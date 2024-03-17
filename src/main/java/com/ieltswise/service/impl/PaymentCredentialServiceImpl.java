@@ -1,7 +1,8 @@
 package com.ieltswise.service.impl;
 
-import com.ieltswise.dto.PaymentCredentialsDto;
+import com.ieltswise.controller.request.PaymentCredentialsRequest;
 import com.ieltswise.entity.PaymentCredentials;
+import com.ieltswise.exception.TutorEmailNotFoundException;
 import com.ieltswise.mapper.PaymentCredentialsMapper;
 import com.ieltswise.repository.PaymentCredentialsRepository;
 import com.ieltswise.service.PaymentCredentialService;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentCredentialServiceImpl implements PaymentCredentialService {
+
     private final PaymentCredentialsRepository paymentCredentialsRepository;
     private final PaymentCredentialsMapper mapper;
 
@@ -21,13 +23,9 @@ public class PaymentCredentialServiceImpl implements PaymentCredentialService {
     }
 
     @Override
-    public PaymentCredentials updatePaymentInfo(PaymentCredentialsDto paymentCredentialsDto) {
-        try {
-            PaymentCredentials paymentCredentials = mapper.mapToPaymentCredentials(paymentCredentialsDto);
-            return paymentCredentialsRepository.save(paymentCredentials);
-        } catch (Exception e) {
-            System.err.printf("Failed to update payment credentials: %s", e.getMessage());
-            throw new RuntimeException();
-        }
+    public PaymentCredentials updatePaymentInfo(PaymentCredentialsRequest paymentCredentialsRequest)
+            throws TutorEmailNotFoundException {
+        PaymentCredentials paymentCredentials = mapper.mapToPaymentCredentials(paymentCredentialsRequest);
+        return paymentCredentialsRepository.save(paymentCredentials);
     }
 }
