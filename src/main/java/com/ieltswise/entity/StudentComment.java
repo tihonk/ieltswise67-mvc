@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Table(name = "STUDENT_COMMENT")
 public class StudentComment {
+
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private long id;

@@ -1,0 +1,29 @@
+[
+  {
+    "status": "confirmed",
+    "start": {
+      "dateTime": "2025-02-03T06:00:00Z"
+    },
+    "end": {
+      "dateTime": "2025-02-03T08:00:00Z"
+    }
+  },
+  {
+    "status": "confirmed",
+    "start": {
+      "date": "2025-02-07"
+    },
+    "end": {
+      "date": "2025-02-08"
+    }
+  },
+  {
+    "status": "confirmed",
+    "start": {
+      "dateTime": "2025-02-13T20:00:00Z"
+    },
+    "end": {
+      "dateTime": "2025-02-14T19:30:00Z"
+    }
+  }
+]

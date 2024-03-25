@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentTokenServiceImpl implements PaymentTokenService {
+
     private final PaymentCredentialsRepository paymentCredentialsRepository;
     private final PaypalConfig paypalConfig;
 
@@ -53,9 +54,7 @@ public class PaymentTokenServiceImpl implements PaymentTokenService {
     }
 
     private PaymentCredentials getPaymentCredentialsByEmail(String email) {
-        PaymentCredentials credentials = paymentCredentialsRepository.findByTutorEmail(email);
-        if (credentials == null)
-            throw new IllegalArgumentException(String.format("Payment credentials not found for tutorEmail: %s", email));
-        return credentials;
+        return paymentCredentialsRepository.findByTutorEmail(email).orElseThrow(() ->
+                new IllegalArgumentException(String.format("Payment credentials not found for tutorEmail: %s", email)));
     }
 }

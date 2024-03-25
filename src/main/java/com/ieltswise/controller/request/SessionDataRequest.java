@@ -1,4 +1,4 @@
-package com.ieltswise.entity;
+package com.ieltswise.controller.request;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class SessionDataRequest {
+
     private String tutorEmail;
     private String studentEmail;
     private String studentName;

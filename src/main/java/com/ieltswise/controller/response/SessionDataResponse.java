@@ -1,4 +1,4 @@
-package com.ieltswise.entity;
+package com.ieltswise.controller.response;
 
 import lombok.Builder;
 import lombok.Getter;

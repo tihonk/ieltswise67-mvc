@@ -1,6 +1,6 @@
 package com.ieltswise.controller;
 
-import com.ieltswise.entity.SessionDataRequest;
+import com.ieltswise.controller.request.SessionDataRequest;
 import com.ieltswise.exception.BookingSessionException;
 import com.ieltswise.service.BookingService;
 import com.ieltswise.service.PayPalPaymentService;

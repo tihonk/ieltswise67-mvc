@@ -9,6 +9,7 @@ import java.util.Map;
 
 @Configuration
 public class PaypalConfig {
+
     @Value("${paypal.mode}")
     private String mode;
 

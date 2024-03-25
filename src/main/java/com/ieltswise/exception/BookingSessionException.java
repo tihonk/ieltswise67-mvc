@@ -1,6 +1,6 @@
 package com.ieltswise.exception;
 
-public class BookingSessionException extends Exception{
+public class BookingSessionException extends Exception {
 
     public BookingSessionException() {
         super("Failed to book lesson");

@@ -1,11 +1,18 @@
 package com.ieltswise.controller;
 
-import com.ieltswise.dto.PaymentCredentialsDto;
-import com.ieltswise.entity.Event;
-import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.controller.request.PaymentCredentialsRequest;
+import com.ieltswise.controller.request.ScheduleUpdateRequest;
+import com.ieltswise.controller.request.TutorCreateRequest;
+import com.ieltswise.controller.response.Event;
 import com.ieltswise.entity.PaymentCredentials;
+import com.ieltswise.entity.TutorInfo;
+import com.ieltswise.entity.schedule.Schedule;
+import com.ieltswise.exception.TutorCreationException;
+import com.ieltswise.exception.TutorEmailNotFoundException;
 import com.ieltswise.service.GoogleEventsService;
 import com.ieltswise.service.PaymentCredentialService;
+import com.ieltswise.service.ScheduleService;
+import com.ieltswise.service.TutorInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +20,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,11 +34,18 @@ import static java.time.ZonedDateTime.now;
 public class TutorController {
 
     private final GoogleEventsService googleEventsService;
+    private final TutorInfoService tutorInfoService;
+    private final ScheduleService scheduleService;
     private final PaymentCredentialService paymentCredentialService;
 
     @Autowired
-    TutorController(GoogleEventsService googleEventsService, PaymentCredentialService paymentCredentialService) {
+    TutorController(GoogleEventsService googleEventsService,
+                    TutorInfoService tutorInfoService,
+                    ScheduleService scheduleService,
+                    PaymentCredentialService paymentCredentialService) {
         this.googleEventsService = googleEventsService;
+        this.tutorInfoService = tutorInfoService;
+        this.scheduleService = scheduleService;
         this.paymentCredentialService = paymentCredentialService;
     }
 
@@ -44,20 +59,55 @@ public class TutorController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/events/{tutorId}/{year}/{month}")
-    public ResponseEntity<List<FreeAndBusyHoursOfTheDay>> getEventsByYearAndMonth(
+    public ResponseEntity<?> getEventsByYearAndMonth(
             @PathVariable String tutorId,
             @PathVariable int year,
             @PathVariable int month) {
-        return ResponseEntity.ok(googleEventsService.getEventsByYearAndMonth(tutorId, year, month));
+        try {
+            return ResponseEntity.ok(googleEventsService.getEventsByYearAndMonth(tutorId, year, month));
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
-    @PostMapping("/payment")
-    public ResponseEntity<?> savePaymentInformation(@RequestBody PaymentCredentialsDto paymentCredentialsDto) {
+    @PostMapping()
+    public ResponseEntity<?> createTutor(@RequestBody TutorCreateRequest tutorCreateRequest) {
         try {
-            PaymentCredentials paymentCredentials = paymentCredentialService.savePaymentInfo(paymentCredentialsDto);
+            TutorInfo createdTutor = tutorInfoService.createTutor(tutorCreateRequest);
+            return ResponseEntity.ok(createdTutor);
+        } catch (TutorCreationException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/schedule/{tutorId}")
+    public ResponseEntity<?> schedule(@PathVariable String tutorId) {
+        try {
+            Schedule schedule = scheduleService.getSchedulesTutor(tutorId);
+            return ResponseEntity.ok(schedule);
+        } catch (TutorEmailNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/schedule/{tutorId}")
+    public ResponseEntity<?> updateSchedule(@PathVariable String tutorId,
+                                            @RequestBody ScheduleUpdateRequest scheduleUpdateRequest) {
+        try {
+            Schedule schedule = scheduleService.updateSchedule(tutorId, scheduleUpdateRequest.getUpdatedTimeInfo());
+            return ResponseEntity.ok(schedule);
+        } catch (TutorEmailNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/payment")
+    public ResponseEntity<?> updatePaymentInformation(@RequestBody PaymentCredentialsRequest paymentCredentialsRequest) {
+        try {
+            PaymentCredentials paymentCredentials = paymentCredentialService.updatePaymentInfo(paymentCredentialsRequest);
             return ResponseEntity.ok(paymentCredentials);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Failed to save comment", HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (TutorEmailNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

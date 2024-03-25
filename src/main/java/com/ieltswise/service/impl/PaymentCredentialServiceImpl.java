@@ -1,7 +1,8 @@
 package com.ieltswise.service.impl;
 
-import com.ieltswise.dto.PaymentCredentialsDto;
+import com.ieltswise.controller.request.PaymentCredentialsRequest;
 import com.ieltswise.entity.PaymentCredentials;
+import com.ieltswise.exception.TutorEmailNotFoundException;
 import com.ieltswise.mapper.PaymentCredentialsMapper;
 import com.ieltswise.repository.PaymentCredentialsRepository;
 import com.ieltswise.service.PaymentCredentialService;
@@ -10,23 +11,21 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentCredentialServiceImpl implements PaymentCredentialService {
+
     private final PaymentCredentialsRepository paymentCredentialsRepository;
     private final PaymentCredentialsMapper mapper;
 
     @Autowired
-    public PaymentCredentialServiceImpl(PaymentCredentialsRepository paymentCredentialsRepository, PaymentCredentialsMapper mapper) {
+    public PaymentCredentialServiceImpl(PaymentCredentialsRepository paymentCredentialsRepository,
+                                        PaymentCredentialsMapper mapper) {
         this.paymentCredentialsRepository = paymentCredentialsRepository;
         this.mapper = mapper;
     }
 
     @Override
-    public PaymentCredentials savePaymentInfo(PaymentCredentialsDto paymentCredentialsDto) {
-        try {
-            PaymentCredentials paymentCredentials = mapper.mapToPaymentCredentials(paymentCredentialsDto);
-            return paymentCredentialsRepository.save(paymentCredentials);
-        } catch (Exception e) {
-            System.err.printf("Failed to save payment credentials: %s", e.getMessage());
-            throw new RuntimeException();
-        }
+    public PaymentCredentials updatePaymentInfo(PaymentCredentialsRequest paymentCredentialsRequest)
+            throws TutorEmailNotFoundException {
+        PaymentCredentials paymentCredentials = mapper.mapToPaymentCredentials(paymentCredentialsRequest);
+        return paymentCredentialsRepository.save(paymentCredentials);
     }
 }
