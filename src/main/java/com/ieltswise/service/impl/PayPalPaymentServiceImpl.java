@@ -1,12 +1,10 @@
 package com.ieltswise.service.impl;
 
-import com.ieltswise.config.PaypalConfig;
 import com.ieltswise.entity.PaymentCredentials;
 import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.repository.PaymentCredentialsRepository;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.PayPalPaymentService;
-import com.ieltswise.service.PaymentTokenService;
 import com.paypal.api.payments.Amount;
 import com.paypal.api.payments.Links;
 import com.paypal.api.payments.Payer;
@@ -15,7 +13,6 @@ import com.paypal.api.payments.PaymentExecution;
 import com.paypal.api.payments.RedirectUrls;
 import com.paypal.api.payments.Transaction;
 import com.paypal.base.rest.APIContext;
-import com.paypal.base.rest.AccessToken;
 import com.paypal.base.rest.PayPalRESTException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,21 +26,18 @@ import java.util.List;
 @Service
 public class PayPalPaymentServiceImpl implements PayPalPaymentService {
 
-    @Value("${ieltswise67.base.url}")
-    private String baseUrl;
-    private final double LESSON_PRICE = 15.0;
-    private final PaypalConfig paypalConfig;
+    @Value("${paypal.mode}")
+    private String mode;
+    @Value("${ieltswise67.lesson.price}")
+    private double lessonPrice;
     private final UserLessonDataRepository userLessonDataRepository;
-    private final PaymentCredentialsRepository credentialsRepository;
-    private final PaymentTokenService paymentTokenService;
+    private final PaymentCredentialsRepository paymentCredentialsRepository;
 
     @Autowired
-    public PayPalPaymentServiceImpl(PaypalConfig paypalConfig, UserLessonDataRepository userLessonDataRepository,
-                                    PaymentCredentialsRepository credentialsRepository, PaymentTokenService paymentTokenService) {
-        this.paypalConfig = paypalConfig;
+    public PayPalPaymentServiceImpl(UserLessonDataRepository userLessonDataRepository,
+                                    PaymentCredentialsRepository paymentCredentialsRepository) {
         this.userLessonDataRepository = userLessonDataRepository;
-        this.credentialsRepository = credentialsRepository;
-        this.paymentTokenService = paymentTokenService;
+        this.paymentCredentialsRepository = paymentCredentialsRepository;
     }
 
     @Override
@@ -62,21 +56,19 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         return null;
     }
 
-    private APIContext getAPIContext(String email) throws PayPalRESTException {
-        AccessToken token = paymentTokenService.getAccessToken(email);
+    private APIContext getAPIContext(String email) {
+        PaymentCredentials credentials = paymentCredentialsRepository.findByTutorEmail(email).orElseThrow(() ->
+                new IllegalArgumentException(String.format("Payment credentials not found for tutorEmail: %s", email)));
 
-        if (token == null || token.expiresIn() <= 0) {
-            paymentTokenService.updateAccessToken(email);
-            token = paymentTokenService.getAccessToken(email);
-        }
-
-        APIContext context = new APIContext(token.getAccessToken());
-        context.setConfigurationMap(paypalConfig.paypalSdkConfig());
-        return context;
+        return new APIContext(credentials.getClientId(), credentials.getClientSecret(), mode);
     }
 
-    public Payment createPayment(int quantity, String cancelUrl, String successUrl, String tutorEmail, String studentEmail)
-            throws PayPalRESTException {
+    public Payment createPayment(
+            int quantity,
+            String cancelUrl,
+            String successUrl,
+            String tutorEmail,
+            String studentEmail) throws PayPalRESTException {
 
         double total = calculateTotalPrice(quantity, studentEmail);
 
@@ -86,8 +78,8 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         amount.setTotal(String.valueOf(roundedNumber));
 
         Transaction transaction = new Transaction();
-        transaction.setAmount(amount);
         transaction.setDescription(String.format("Lesson quantity: %d, user email: %s", quantity, studentEmail));
+        transaction.setAmount(amount);
 
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(transaction);
@@ -95,13 +87,14 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         Payer payer = new Payer();
         payer.setPaymentMethod("paypal");
 
+        RedirectUrls redirectUrls = new RedirectUrls();
+        redirectUrls.setReturnUrl(successUrl);
+        redirectUrls.setCancelUrl(cancelUrl);
+
         Payment payment = new Payment();
         payment.setIntent("sale");
         payment.setPayer(payer);
         payment.setTransactions(transactions);
-        RedirectUrls redirectUrls = new RedirectUrls();
-        redirectUrls.setReturnUrl(successUrl);
-        redirectUrls.setCancelUrl(cancelUrl);
         payment.setRedirectUrls(redirectUrls);
 
         return payment.create(getAPIContext(tutorEmail));
@@ -118,15 +111,19 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
 
     private double applyDiscount(int quantity) {
         double totalPrice = calculateRegularPrice(quantity);
-        double discount = LESSON_PRICE * 5 * 0.05;
+        double discount = lessonPrice * 5 * 0.05;
         return totalPrice - discount;
     }
 
     private double calculateRegularPrice(int quantity) {
-        return LESSON_PRICE * quantity;
+        return lessonPrice * quantity;
     }
 
-    public Payment executePayment(String paymentId, String payerId, String tutorEmail) throws PayPalRESTException {
+    public Payment executePayment(
+            String paymentId,
+            String payerId,
+            String tutorEmail) throws PayPalRESTException {
+
         PaymentCredentials credentials = verifyPaymentNotCompleted(paymentId, tutorEmail);
 
         Payment payment = new Payment();
@@ -138,13 +135,13 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         getQuantityAndEmail(executedPayment);
 
         credentials.setPaymentId(paymentId);
-        credentialsRepository.save(credentials);
+        paymentCredentialsRepository.save(credentials);
 
         return executedPayment;
     }
 
     private PaymentCredentials verifyPaymentNotCompleted(String paymentId, String tutorEmail) throws PayPalRESTException {
-        PaymentCredentials paymentCredentials = credentialsRepository.findByTutorEmail(tutorEmail).orElseThrow(() ->
+        PaymentCredentials paymentCredentials = paymentCredentialsRepository.findByTutorEmail(tutorEmail).orElseThrow(() ->
                 new IllegalArgumentException(String.format("Payment credentials not found for tutorEmail: %s", tutorEmail)));
         if (paymentId.equals(paymentCredentials.getPaymentId())) {
             throw new PayPalRESTException("Payment has been done already for this cart.");
