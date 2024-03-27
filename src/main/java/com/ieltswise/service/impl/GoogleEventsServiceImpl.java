@@ -299,7 +299,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
         TimeSlot timeSlot = daySchedule.get(i);
 
-        if (timeSlot.isAvailability()) {
+        if (timeSlot.isEngaged()) {
             LocalTime localTime = LocalTime.parse(timeSlot.getTime());
             long clock = localTime.atDate(LocalDate.from(utcDateTime))
                     .atZone(ZoneOffset.UTC)
