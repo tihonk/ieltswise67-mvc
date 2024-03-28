@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class TimeSlot {
 
     private String time;
-    private boolean availability;
+    private boolean engaged;
 }

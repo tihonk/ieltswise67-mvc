@@ -2,687 +2,687 @@
   "MONDAY": [
     {
       "time": "00:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "01:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "02:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "03:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "04:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "05:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "06:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "07:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "08:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "09:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "10:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "11:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "12:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "13:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "14:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "15:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "16:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "17:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "18:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "19:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "20:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "21:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "22:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "23:00",
-      "availability": false
+      "engaged": false
     }
   ],
   "TUESDAY": [
     {
       "time": "00:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "01:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "02:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "03:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "04:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "05:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "06:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "07:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "08:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "09:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "10:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "11:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "12:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "13:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "14:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "15:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "16:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "17:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "18:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "19:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "20:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "21:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "22:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "23:00",
-      "availability": false
+      "engaged": false
     }
   ],
   "WEDNESDAY": [
     {
       "time": "00:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "01:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "02:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "03:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "04:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "05:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "06:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "07:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "08:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "09:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "10:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "11:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "12:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "13:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "14:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "15:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "16:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "17:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "18:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "19:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "20:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "21:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "22:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "23:00",
-      "availability": false
+      "engaged": false
     }
   ],
   "THURSDAY": [
     {
       "time": "00:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "01:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "02:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "03:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "04:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "05:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "06:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "07:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "08:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "09:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "10:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "11:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "12:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "13:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "14:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "15:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "16:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "17:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "18:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "19:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "20:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "21:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "22:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "23:00",
-      "availability": false
+      "engaged": false
     }
   ],
   "FRIDAY": [
     {
       "time": "00:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "01:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "02:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "03:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "04:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "05:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "06:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "07:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "08:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "09:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "10:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "11:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "12:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "13:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "14:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "15:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "16:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "17:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "18:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "19:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "20:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "21:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "22:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "23:00",
-      "availability": false
+      "engaged": false
     }
   ],
   "SATURDAY": [
     {
       "time": "00:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "01:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "02:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "03:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "04:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "05:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "06:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "07:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "08:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "09:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "10:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "11:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "12:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "13:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "14:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "15:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "16:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "17:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "18:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "19:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "20:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "21:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "22:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "23:00",
-      "availability": false
+      "engaged": false
     }
   ],
   "SUNDAY": [
     {
       "time": "00:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "01:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "02:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "03:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "04:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "05:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "06:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "07:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "08:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "09:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "10:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "11:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "12:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "13:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "14:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "15:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "16:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "17:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "18:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "19:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "20:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "21:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "22:00",
-      "availability": false
+      "engaged": false
     },
     {
       "time": "23:00",
-      "availability": false
+      "engaged": false
     }
   ]
 }
