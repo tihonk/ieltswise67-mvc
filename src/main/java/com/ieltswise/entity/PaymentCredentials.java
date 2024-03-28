@@ -32,10 +32,6 @@ public class PaymentCredentials {
     private String clientSecret;
     @Column(name = "PAYMENT_ID", unique = true)
     private String paymentId;
-    @Column(name = "ACCESS_TOKEN", unique = true)
-    private String accessToken;
-    @Column(name = "TOKEN_EXPIRES")
-    private Long expires;
     @OneToOne
     @JoinColumn(name = "TUTOR_ID")
     @JsonBackReference
