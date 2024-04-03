@@ -5,6 +5,7 @@ import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
 import com.ieltswise.entity.schedule.TimeSlot;
 import com.ieltswise.service.GoogleEventsService;
 import com.ieltswise.service.ScheduleService;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.Locale.ROOT;
 import static org.apache.http.protocol.HTTP.USER_AGENT;
 
+@Slf4j
 @Service
 public class GoogleEventsServiceImpl implements GoogleEventsService {
 
@@ -68,6 +70,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
                     + "/events?key=" + googleCredentialKey);
             return extractEvents(createJSONObjectResponse(obj).getJSONArray(ITEMS));
         } catch (Exception e) {
+            log.error("Failed to fetch events for tutor ID: {}", tutorID, e);
             throw new RuntimeException(e);
         }
     }
@@ -118,6 +121,7 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
             return findAllEventsByYearAndMonth(createJSONObjectResponse(url).getJSONArray(ITEMS), startOfMonth,
                     endOfMonth, schedule);
         } catch (Exception e) {
+            log.error("Failed to fetch events for tutor ID: {}, year: {}, month: {}", tutorId, year, month, e);
             throw new Exception(e);
         }
     }

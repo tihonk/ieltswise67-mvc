@@ -23,6 +23,7 @@ import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.exception.BookingSessionException;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.BookingService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,7 @@ import static com.google.api.services.calendar.CalendarScopes.CALENDAR;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
+@Slf4j
 @Service
 public class BookingServiceImpl implements BookingService {
 
@@ -82,7 +84,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public SessionDataResponse bookRegularSession(SessionDataRequest sessionData) {
-        UserLessonData userLessonData = userLessonDataRepository.findByEmail(sessionData.getStudentEmail());
+        String studentEmail = sessionData.getStudentEmail();
+        UserLessonData userLessonData = userLessonDataRepository.findByEmail(studentEmail);
         if (userLessonData != null && userLessonData.getAvailableLessons() > 0) {
             int newAvailableLessons = userLessonData.getAvailableLessons() - 1;
             userLessonData.setAvailableLessons(newAvailableLessons);
@@ -91,6 +94,8 @@ public class BookingServiceImpl implements BookingService {
             sessionData.setEventLink(bookSession(sessionData, userLessonData.getName()));
             return prepareSessionDataResponse(sessionData);
         } else {
+            log.warn("There is no student with this email address " +
+                    "or no available lessons have been found for a student with this email: {}", studentEmail);
             return null;
         }
     }
@@ -101,12 +106,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private String bookSession(final SessionDataRequest sessionData, final String studentName) {
-        // TODO: Add logs about event creation
         try {
+            log.info("Attempting to create event for student: " + studentName);
             final Event event = prepareAndSendEvent(sessionData, studentName);
+            log.info("Event created successfully for student: " + studentName);
             return event.getHtmlLink();
         } catch (Exception e) {
-            System.err.println("Failed to create event for email " + sessionData.getStudentEmail());
+            log.error("Failed to create event for email " + sessionData.getStudentEmail(), e);
             return null;
         }
     }
@@ -241,7 +247,9 @@ public class BookingServiceImpl implements BookingService {
             throws IOException {
         final InputStream in = BookingServiceImpl.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         if (in == null) {
-            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
+            String errorMessage = "Resource not found: " + CREDENTIALS_FILE_PATH;
+            log.error(errorMessage);
+            throw new FileNotFoundException(errorMessage);
         }
         final GoogleClientSecrets clientSecrets = load(JSON_FACTORY, new InputStreamReader(in));
 
