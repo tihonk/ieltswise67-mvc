@@ -10,7 +10,7 @@ public interface GoogleEventsService {
     List<Event> getEvents(String tutorId);
 
     /**
-     * Method for getting all free and busy hours of all days of the month
+     * A method for getting information about all available, unavailable and booked hours for all days of the month
      *
      * @param tutorId tutor's email
      * @param year    year
