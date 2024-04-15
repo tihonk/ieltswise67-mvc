@@ -7,11 +7,13 @@ import com.ieltswise.mapper.StudentCommentMapper;
 import com.ieltswise.repository.StudentCommentRepository;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.CommentService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 public class CommentServiceImpl implements CommentService {
 
@@ -31,8 +33,10 @@ public class CommentServiceImpl implements CommentService {
 
     public StudentComment createComment(StudentCommentRequest studentCommentRequest) {
         String email = studentCommentRequest.getEmail();
+        log.info("{} is trying to add a comment", email);
+
         UserLessonData lessonData = userLessonDataRepository.findByEmail(email);
-        System.out.println(email + " email is trying to add a comment, here is the user data: " + lessonData);
+        log.info("User data for email {}: {}", email, lessonData);
 
         if (lessonData != null && lessonData.getAllPaidLessons() > 0) {
             StudentComment comment = mapper.mapToStudentComment(studentCommentRequest);
@@ -42,10 +46,12 @@ public class CommentServiceImpl implements CommentService {
                 comment.setName(lessonData.getName());
             }
             comment.setCreated(LocalDateTime.now());
-
-            System.out.println("The comment is ready to be saved:" + comment);
+            log.info("Comment ready to be saved: {}", comment);
             return commentRepository.save(comment);
 
-        } else return null;
+        } else {
+            log.warn("User does not have any paid lessons or user data not found");
+            return null;
+        }
     }
 }

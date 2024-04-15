@@ -14,6 +14,7 @@ import com.paypal.api.payments.RedirectUrls;
 import com.paypal.api.payments.Transaction;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class PayPalPaymentServiceImpl implements PayPalPaymentService {
 
@@ -51,7 +53,8 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
                 }
             }
         } catch (PayPalRESTException | NullPointerException e) {
-            e.printStackTrace();
+            log.error("Error while preparing payment link for tutor email: {}, student email: {}",
+                    tutorEmail, studentEmail, e);
         }
         return null;
     }

@@ -10,12 +10,14 @@ import com.ieltswise.repository.PaymentCredentialsRepository;
 import com.ieltswise.repository.ScheduleRepository;
 import com.ieltswise.repository.TutorInfoRepository;
 import com.ieltswise.service.TutorInfoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 public class TutorInfoServiceImpl implements TutorInfoService {
 
@@ -39,15 +41,19 @@ public class TutorInfoServiceImpl implements TutorInfoService {
     @Transactional
     public TutorInfo createTutor(TutorCreateRequest tutorCreateRequest) throws TutorCreationException {
         try {
+            log.info("Creating tutor: {}", tutorCreateRequest);
+
             TutorInfo tutorInfo = tutorMapper.mapTutorCreateRequestToTutorInfo(tutorCreateRequest);
             tutorInfo.setCreated(Instant.now().toEpochMilli());
             tutorInfoRepository.save(tutorInfo);
+            log.info("Tutor info saved: {}", tutorInfo);
 
             Schedule schedule = Schedule.builder()
                     .tutor(tutorInfo)
                     .timeInfo(tutorCreateRequest.getUpdatedTimeInfo())
                     .build();
             scheduleRepository.save(schedule);
+            log.info("Schedule saved: {}", schedule);
 
             PaymentCredentials paymentCredentials = PaymentCredentials.builder()
                     .tutor(tutorInfo)
@@ -55,9 +61,13 @@ public class TutorInfoServiceImpl implements TutorInfoService {
                     .clientSecret(tutorCreateRequest.getClientSecret())
                     .build();
             paymentCredentialsRepository.save(paymentCredentials);
+            log.info("Payment credentials saved: {}", paymentCredentials);
+
+            log.info("Tutor created successfully: {}", tutorInfo);
 
             return tutorInfo;
         } catch (Exception e) {
+            log.error("Error occurred while creating tutor", e);
             throw new TutorCreationException();
         }
     }
