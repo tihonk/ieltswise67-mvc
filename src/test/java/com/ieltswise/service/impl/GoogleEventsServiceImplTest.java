@@ -1,13 +1,14 @@
 package com.ieltswise.service.impl;
 
-import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
-import com.ieltswise.entity.schedule.TimeSlot;
+import com.ieltswise.dto.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.dto.TimeSlot;
 import com.ieltswise.service.ScheduleService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,9 +40,11 @@ import static util.JsonDataReader.loadScheduleFromFile;
 @ExtendWith(MockitoExtension.class)
 public class GoogleEventsServiceImplTest {
 
+    @InjectMocks
+    private GoogleEventsServiceImpl googleEventsService;
     @Mock
     private ScheduleService scheduleService;
-    private GoogleEventsServiceImpl googleEventsService;
+
     private Method method;
     private JSONArray jsonArray;
     private ZonedDateTime startOfMonth;
@@ -50,7 +53,6 @@ public class GoogleEventsServiceImplTest {
 
     @BeforeEach
     void setUp() throws NoSuchMethodException {
-        googleEventsService = new GoogleEventsServiceImpl(scheduleService);
 
         method = GoogleEventsServiceImpl.class.getDeclaredMethod("findAllEventsByYearAndMonth",
                 JSONArray.class, ZonedDateTime.class, ZonedDateTime.class, Map.class);

@@ -1,6 +1,6 @@
 package com.ieltswise.repository;
 
-import com.ieltswise.entity.schedule.Schedule;
+import com.ieltswise.entity.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

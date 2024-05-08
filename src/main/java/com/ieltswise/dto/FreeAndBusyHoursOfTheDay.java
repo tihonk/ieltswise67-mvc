@@ -1,18 +1,15 @@
-package com.ieltswise.entity;
+package com.ieltswise.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * Class describing all dates of the month with the status of all hours in a day
- * @author Mark "markvl836@gmail.com"
- */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FreeAndBusyHoursOfTheDay {

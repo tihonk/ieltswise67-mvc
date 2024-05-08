@@ -33,6 +33,7 @@
         <rest-api-sdk.version>1.14.0</rest-api-sdk.version>
         <junit-jupiter-api.version>5.10.2</junit-jupiter-api.version>
         <mockito-core.version>5.11.0</mockito-core.version>
+        <spring-boot-starter-validation.version>3.2.5</spring-boot-starter-validation.version>
     </properties>
 
     <dependencies>
@@ -149,6 +150,12 @@
             <artifactId>mockito-core</artifactId>
             <version>${mockito-core.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <version>${spring-boot-starter-validation.version}</version>
         </dependency>
     </dependencies>
 

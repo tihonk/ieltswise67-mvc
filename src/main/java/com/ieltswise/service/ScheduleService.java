@@ -1,8 +1,8 @@
 package com.ieltswise.service;
 
-import com.ieltswise.entity.schedule.Schedule;
-import com.ieltswise.entity.schedule.TimeSlot;
-import com.ieltswise.exception.TutorEmailNotFoundException;
+import com.ieltswise.dto.TimeSlot;
+import com.ieltswise.entity.Schedule;
+import com.ieltswise.exception.EmailNotFoundException;
 
 import java.time.DayOfWeek;
 import java.util.List;
@@ -15,9 +15,9 @@ public interface ScheduleService {
      *
      * @param email the email of the tutor
      * @return the schedule for the tutor
-     * @throws TutorEmailNotFoundException if the tutor's email is not found.
+     * @throws EmailNotFoundException if the tutor's email is not found.
      */
-    Schedule getSchedulesTutor(String email) throws TutorEmailNotFoundException;
+    Schedule getSchedulesTutor(String email) throws EmailNotFoundException;
 
     /**
      * Updates the schedule for a tutor with the provided time information
@@ -25,8 +25,8 @@ public interface ScheduleService {
      * @param tutorId         the email of the tutor
      * @param updatedTimeInfo the updated time information for the schedule
      * @return the updated schedule for the tutor
-     * @throws TutorEmailNotFoundException if the tutor's email is not found.
+     * @throws EmailNotFoundException if the tutor's email is not found.
      */
     Schedule updateSchedule(String tutorId, Map<DayOfWeek, List<TimeSlot>> updatedTimeInfo)
-            throws TutorEmailNotFoundException;
+            throws EmailNotFoundException;
 }

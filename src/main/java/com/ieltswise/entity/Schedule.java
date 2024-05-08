@@ -1,8 +1,8 @@
-package com.ieltswise.entity.schedule;
+package com.ieltswise.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.ieltswise.converter.JsonConverter;
-import com.ieltswise.entity.TutorInfo;
+import com.ieltswise.dto.TimeSlot;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;

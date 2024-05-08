@@ -2,8 +2,8 @@ package util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
-import com.ieltswise.entity.schedule.TimeSlot;
+import com.ieltswise.dto.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.dto.TimeSlot;
 import com.ieltswise.enums.Status;
 import org.json.JSONArray;
 

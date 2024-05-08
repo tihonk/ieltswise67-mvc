@@ -2,8 +2,10 @@ package com.ieltswise.controller;
 
 import com.ieltswise.controller.request.StudentCommentRequest;
 import com.ieltswise.entity.StudentComment;
-import com.ieltswise.repository.StudentCommentRepository;
+import com.ieltswise.exception.EmailNotFoundException;
+import com.ieltswise.exception.NoPurchasedLessonsException;
 import com.ieltswise.service.CommentService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,32 +23,24 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
-    private final StudentCommentRepository commentRepository;
 
     @Autowired
-    public CommentController(CommentService commentService, StudentCommentRepository commentRepository) {
+    public CommentController(CommentService commentService) {
         this.commentService = commentService;
-        this.commentRepository = commentRepository;
     }
 
     @CrossOrigin(origins = "*")
     @GetMapping
     ResponseEntity<List<StudentComment>> getAllComments() {
-        List<StudentComment> comments = commentRepository.findAll();
-        return new ResponseEntity<>(comments, HttpStatus.OK);
+        List<StudentComment> comments = commentService.getAllComments();
+        return ResponseEntity.ok(comments);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping()
-    ResponseEntity<?> createComment(@RequestBody StudentCommentRequest studentCommentRequest) {
-        try {
-            StudentComment comment = commentService.createComment(studentCommentRequest);
-            if (comment != null)
-                return new ResponseEntity<>(comment, HttpStatus.CREATED);
-            else
-                return new ResponseEntity<>("User has not purchased any lessons", HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Failed to save comment", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    ResponseEntity<StudentComment> createComment(@RequestBody @Valid StudentCommentRequest studentCommentRequest)
+            throws EmailNotFoundException, NoPurchasedLessonsException {
+        StudentComment comment = commentService.createComment(studentCommentRequest);
+        return new ResponseEntity<>(comment, HttpStatus.CREATED);
     }
 }
