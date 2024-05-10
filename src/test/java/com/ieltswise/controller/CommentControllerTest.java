@@ -53,7 +53,7 @@ public class CommentControllerTest {
     }
 
     @Test
-    public void CommentController_GetAllComments_ReturnAllComments() throws Exception {
+    public void testGetAllCommentsReturnAllComments() throws Exception {
 
         // Given
         List<StudentComment> comments = Collections.singletonList(studentComment);
@@ -75,7 +75,7 @@ public class CommentControllerTest {
     }
 
     @Test
-    public void CommentController_CreateComment_ReturnCreated() throws Exception {
+    public void testCreateCommentReturnCreated() throws Exception {
 
         // Given
         StudentCommentRequest commentRequest = new StudentCommentRequest("Bob001@gmail.com",
@@ -98,7 +98,7 @@ public class CommentControllerTest {
     }
 
     @Test
-    public void CommentController_CreateComment_ThrowsMethodArgumentNotValidException() throws Exception {
+    public void testCreateCommentThrowsMethodArgumentNotValidException() throws Exception {
 
         // Given
         StudentCommentRequest invalidRequest = new StudentCommentRequest("invalid_email", "");
@@ -112,7 +112,7 @@ public class CommentControllerTest {
     }
 
     @Test
-    public void CommentController_CreateComment_ThrowsEmailNotFoundException() throws Exception {
+    public void testCreateCommentThrowsEmailNotFoundException() throws Exception {
 
         // When
         when(commentService.createComment(isA(StudentCommentRequest.class))).thenThrow(
@@ -127,7 +127,7 @@ public class CommentControllerTest {
     }
 
     @Test
-    public void CommentController_CreateComment_ThrowsNoPurchasedLessonsException() throws Exception {
+    public void testCreateCommentThrowsNoPurchasedLessonsException() throws Exception {
 
         // When
         when(commentService.createComment(isA(StudentCommentRequest.class))).thenThrow(

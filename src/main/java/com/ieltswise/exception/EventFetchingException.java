@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public class EventFetchingException extends IOException {
 
-    public EventFetchingException(String msg) {
-        super(msg);
+    public EventFetchingException(String message) {
+        super(message);
     }
 }

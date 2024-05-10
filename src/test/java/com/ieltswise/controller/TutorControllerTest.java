@@ -65,7 +65,7 @@ public class TutorControllerTest {
     String tutorEmail = "test.tutor1.ieltswise67@gmail.com";
 
     @Test
-    public void TutorController_GetEvents_ReturnEvents() throws Exception {
+    public void testGetEventsReturnEvents() throws Exception {
 
         // Given
         Event pastEvent = Event.builder()
@@ -101,7 +101,7 @@ public class TutorControllerTest {
     }
 
     @Test
-    public void TutorController_GetEventsByYearAndMonth_ReturnFreeAndBusyHoursOfTheDayList() throws Exception {
+    public void testGetEventsByYearAndMonthReturnFreeAndBusyHoursOfTheDayList() throws Exception {
 
         // Given
         Map<String, Object> hourStatus = new HashMap<>();
@@ -155,7 +155,7 @@ public class TutorControllerTest {
     }
 
     @Test
-    public void TutorController_CreateTutor_ReturnCreated() throws Exception {
+    public void testCreateTutorReturnCreated() throws Exception {
 
         // Given
         TutorInfo createdTutor = TutorInfo.builder()
@@ -191,7 +191,7 @@ public class TutorControllerTest {
     }
 
     @Test
-    public void TutorController_Schedule_ReturnSchedule() throws Exception {
+    public void testScheduleReturnSchedule() throws Exception {
 
         // When
         when(scheduleService.getSchedulesTutor(anyString())).thenReturn(createSchedule());
@@ -206,7 +206,7 @@ public class TutorControllerTest {
     }
 
     @Test
-    public void TutorController_UpdateSchedule_ReturnUpdatedSchedule() throws Exception {
+    public void testUpdateScheduleReturnUpdatedSchedule() throws Exception {
 
         // Given
         ScheduleUpdateRequest scheduleUpdateRequest = ScheduleUpdateRequest.builder()
@@ -228,7 +228,7 @@ public class TutorControllerTest {
     }
 
     @Test
-    public void TutorController_UpdatePaymentInformation_ReturnUpdated() throws Exception {
+    public void testUpdatePaymentInformationReturnUpdated() throws Exception {
 
         // Given
         PaymentCredentials paymentCredentials = PaymentCredentials.builder()

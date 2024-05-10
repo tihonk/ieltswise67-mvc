@@ -62,7 +62,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_WhenNoEvents()
+    public void testFindAllEventsByYearAndMonthWhenNoEvents()
             throws InvocationTargetException, IllegalAccessException {
 
         // Given
@@ -81,7 +81,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_GmtPlus3_FreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtPlus3AndFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -101,7 +101,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_GmtPlus3_NotFreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtPlus3AndNotFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -121,7 +121,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_Gmt_FreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtAndFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -142,7 +142,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_Gmt_NotFreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtAndNotFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -163,7 +163,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_GmtMinus4_FreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtMinus4AndFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -184,7 +184,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_GmtMinus4_NotFreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtMinus4AndNotFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given

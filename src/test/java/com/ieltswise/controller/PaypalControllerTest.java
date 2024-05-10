@@ -37,7 +37,7 @@ public class PaypalControllerTest {
             "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=EC-73788278942856907";
 
     @Test
-    public void PaypalController_GetPaymentLink_ReturnPaymentLink() throws Exception {
+    public void testGetPaymentLinkReturnPaymentLink() throws Exception {
 
         // When
         when(payPalService.preparePaymentLink(successUrl, cancelUrl, tutorEmail, studentEmail))
@@ -56,7 +56,7 @@ public class PaypalControllerTest {
     }
 
     @Test
-    public void PaypalController_GetPaymentLink_ThrowEmailNotFoundException() throws Exception {
+    public void testGetPaymentLinkThrowEmailNotFoundException() throws Exception {
 
         // When
         when(payPalService.preparePaymentLink(successUrl, cancelUrl, tutorEmail, studentEmail))
@@ -73,7 +73,7 @@ public class PaypalControllerTest {
     }
 
     @Test
-    public void PaypalController_GetPaymentLink_ThrowPayPalRESTException() throws Exception {
+    public void testGetPaymentLinkThrowPayPalRESTException() throws Exception {
 
         // When
         when(payPalService.preparePaymentLink(successUrl, cancelUrl, tutorEmail, studentEmail))
@@ -90,7 +90,7 @@ public class PaypalControllerTest {
     }
 
     @Test
-    public void PaypalController_CancelPay_ReturnString() throws Exception {
+    public void testCancelPayReturnString() throws Exception {
 
         // Then
         mockMvc.perform(get("/payment/cancel"))

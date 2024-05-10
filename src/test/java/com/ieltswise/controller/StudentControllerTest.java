@@ -60,7 +60,7 @@ public class StudentControllerTest {
             .build();
 
     @Test
-    public void StudentController_BookTrialSession_ReturnTrialSession() throws Exception {
+    public void testBookTrialSessionReturnTrialSession() throws Exception {
 
         // When
         when(calendarMailService.bookTrialSession(isA(SessionDataRequest.class))).thenReturn(sessionDataResponse);
@@ -78,7 +78,7 @@ public class StudentControllerTest {
     }
 
     @Test
-    public void StudentController_BookTrialSession_ThrowBookingSessionException() throws Exception{
+    public void testBookTrialSessionThrowBookingSessionException() throws Exception{
 
         // When
         when(calendarMailService.bookTrialSession(isA(SessionDataRequest.class))).thenThrow(
@@ -93,7 +93,7 @@ public class StudentControllerTest {
     }
 
     @Test
-    public void StudentController_BookRegularSession_ReturnTrialSession() throws Exception {
+    public void testBookRegularSessionReturnTrialSession() throws Exception {
 
         // Given
         Payment payment = new Payment();
@@ -119,7 +119,7 @@ public class StudentControllerTest {
     }
 
     @Test
-    public void StudentController_BookRegularSession_ReturnBadRequest() throws Exception {
+    public void testBookRegularSessionReturnBadRequest() throws Exception {
 
         // Given
         Payment failedPayment = new Payment();
@@ -136,7 +136,7 @@ public class StudentControllerTest {
     }
 
     @Test
-    public void StudentController_GetUserLessonCount_ReturnUserLessonCount() throws Exception {
+    public void testGetUserLessonCountReturnUserLessonCount() throws Exception {
 
         // Given
         JSONObject jsonResponse = new JSONObject().put("Number of lessons available: ", 3);
@@ -152,7 +152,7 @@ public class StudentControllerTest {
     }
 
     @Test
-    public void StudentController_IsTrialAvailable_ReturnBoolean() throws Exception {
+    public void testIsTrialAvailableReturnBoolean() throws Exception {
 
         // When
         when((calendarMailService.isTrialAvailable(email))).thenReturn(true);
