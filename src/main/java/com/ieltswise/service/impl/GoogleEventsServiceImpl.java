@@ -1,9 +1,12 @@
 package com.ieltswise.service.impl;
 
 import com.ieltswise.controller.response.Event;
-import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
-import com.ieltswise.entity.schedule.TimeSlot;
+import com.ieltswise.dto.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.dto.TimeSlot;
 import com.ieltswise.enums.Status;
+import com.ieltswise.exception.EmailNotFoundException;
+import com.ieltswise.exception.EventFetchingException;
+import com.ieltswise.repository.TutorInfoRepository;
 import com.ieltswise.service.GoogleEventsService;
 import com.ieltswise.service.ScheduleService;
 import lombok.extern.slf4j.Slf4j;
@@ -58,22 +61,29 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
     private String googleCredentialKey;
 
     private final ScheduleService scheduleService;
+    private final TutorInfoRepository tutorInfoRepository;
 
     @Autowired
-    public GoogleEventsServiceImpl(ScheduleService scheduleService) {
+    public GoogleEventsServiceImpl(ScheduleService scheduleService, TutorInfoRepository tutorInfoRepository) {
         this.scheduleService = scheduleService;
+        this.tutorInfoRepository = tutorInfoRepository;
     }
 
     @Override
-    public List<Event> getEvents(String tutorID) {
+    public List<Event> getEvents(String tutorID) throws EmailNotFoundException, EventFetchingException {
+        isTutorRegistered(tutorID);
         try {
             URL obj = new URL("https://www.googleapis.com/calendar/v3/calendars/" + tutorID
                     + "/events?key=" + googleCredentialKey);
             return extractEvents(createJSONObjectResponse(obj).getJSONArray(ITEMS));
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("Failed to fetch events for tutor ID: {}", tutorID, e);
-            throw new RuntimeException(e);
+            throw new EventFetchingException(e.getMessage());
         }
+    }
+
+    private void isTutorRegistered(String email) throws EmailNotFoundException {
+        tutorInfoRepository.findByEmail(email).orElseThrow(() -> new EmailNotFoundException("Tutor", email));
     }
 
     private List<Event> extractEvents(JSONArray eventItems) {
@@ -110,8 +120,9 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
     @Override
     public List<FreeAndBusyHoursOfTheDay> getEventsByYearAndMonth(String tutorId, int year, int month)
-            throws Exception {
+            throws EmailNotFoundException, EventFetchingException {
 
+        isTutorRegistered(tutorId);
         Map<DayOfWeek, List<TimeSlot>> schedule = scheduleService.getSchedulesTutor(tutorId).getTimeInfo();
 
         try {
@@ -121,9 +132,9 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
             URL url = new URL(createUrl(tutorId, startOfMonth, endOfMonth));
             return findAllEventsByYearAndMonth(createJSONObjectResponse(url).getJSONArray(ITEMS), startOfMonth,
                     endOfMonth, schedule);
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("Failed to fetch events for tutor ID: {}, year: {}, month: {}", tutorId, year, month, e);
-            throw new Exception(e);
+            throw new EventFetchingException(e.getMessage());
         }
     }
 

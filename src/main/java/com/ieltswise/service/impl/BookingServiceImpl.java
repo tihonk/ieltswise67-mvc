@@ -17,10 +17,15 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.EventReminder;
+import com.ieltswise.controller.request.RegularSessionDataRequest;
 import com.ieltswise.controller.request.SessionDataRequest;
 import com.ieltswise.controller.response.SessionDataResponse;
+import com.ieltswise.entity.TutorInfo;
 import com.ieltswise.entity.UserLessonData;
 import com.ieltswise.exception.BookingSessionException;
+import com.ieltswise.exception.EmailNotFoundException;
+import com.ieltswise.exception.NoAvailableLessonsException;
+import com.ieltswise.repository.TutorInfoRepository;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.BookingService;
 import lombok.extern.slf4j.Slf4j;
@@ -51,53 +56,57 @@ public class BookingServiceImpl implements BookingService {
     private static final String TOKENS_DIRECTORY_PATH = "src/main/resources/tokens";
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
     private final UserLessonDataRepository userLessonDataRepository;
+    private final TutorInfoRepository tutorInfoRepository;
 
     @Autowired
-    public BookingServiceImpl(UserLessonDataRepository userLessonDataRepository) {
+    public BookingServiceImpl(UserLessonDataRepository userLessonDataRepository,
+                              TutorInfoRepository tutorInfoRepository) {
         this.userLessonDataRepository = userLessonDataRepository;
+        this.tutorInfoRepository = tutorInfoRepository;
     }
 
     @Override
-    public int getNumberOfAvailableLessons(String email) {
+    public int getNumberOfAvailableLessons(String email) throws EmailNotFoundException {
         UserLessonData userLessonData = userLessonDataRepository.findByEmail(email);
-        if (userLessonData != null) {
-            return userLessonData.getAvailableLessons();
+        if (userLessonData == null) {
+            throw new EmailNotFoundException("Student", email);
         }
-        return 0;
+        return userLessonData.getAvailableLessons();
     }
 
     @Override
-    public SessionDataResponse bookTrialSession(final SessionDataRequest sessionData) throws BookingSessionException {
+    public SessionDataResponse bookTrialSession(final SessionDataRequest sessionData) throws Exception {
         final String studentEmail = sessionData.getStudentEmail();
         if (isUsedTrialLessonByStudent(studentEmail)) {
-            throw new BookingSessionException("Already used a trial lesson for email: " + studentEmail);
+            throw new BookingSessionException(String.format("Already used a trial lesson for email: %s", studentEmail));
         } else {
             final String studentName = sessionData.getStudentName();
             final String eventLink = bookSession(sessionData, studentName);
-            if (eventLink != null) {
-                saveStudentUsedTrialLesson(studentEmail, studentName);
-                sessionData.setEventLink(eventLink);
-            }
+            saveStudentUsedTrialLesson(studentEmail, studentName);
+            sessionData.setEventLink(eventLink);
             return prepareSessionDataResponse(sessionData);
         }
     }
 
     @Override
-    public SessionDataResponse bookRegularSession(SessionDataRequest sessionData) {
-        String studentEmail = sessionData.getStudentEmail();
+    public SessionDataResponse bookRegularSession(RegularSessionDataRequest regularSessionDataRequest)
+            throws Exception {
+        String studentEmail = regularSessionDataRequest.getStudentEmail();
         UserLessonData userLessonData = userLessonDataRepository.findByEmail(studentEmail);
-        if (userLessonData != null && userLessonData.getAvailableLessons() > 0) {
-            int newAvailableLessons = userLessonData.getAvailableLessons() - 1;
-            userLessonData.setAvailableLessons(newAvailableLessons);
-            userLessonData.setLastBookingDate(new Date());
-            userLessonDataRepository.save(userLessonData);
-            sessionData.setEventLink(bookSession(sessionData, userLessonData.getName()));
-            return prepareSessionDataResponse(sessionData);
-        } else {
-            log.warn("There is no student with this email address " +
-                    "or no available lessons have been found for a student with this email: {}", studentEmail);
-            return null;
-        }
+
+        if (userLessonData == null)
+            throw new EmailNotFoundException("Student", studentEmail);
+
+        if (userLessonData.getAvailableLessons() < 1)
+            throw new NoAvailableLessonsException(String.format("No available lessons have been found " +
+                    "for a student with this email: %s", studentEmail));
+
+        int newAvailableLessons = userLessonData.getAvailableLessons() - 1;
+        userLessonData.setAvailableLessons(newAvailableLessons);
+        userLessonData.setLastBookingDate(new Date());
+        userLessonDataRepository.save(userLessonData);
+        regularSessionDataRequest.setEventLink(bookSession(regularSessionDataRequest, userLessonData.getName()));
+        return prepareSessionDataResponse(regularSessionDataRequest);
     }
 
     @Override
@@ -105,16 +114,12 @@ public class BookingServiceImpl implements BookingService {
         return !isUsedTrialLessonByStudent(studentEmail);
     }
 
-    private String bookSession(final SessionDataRequest sessionData, final String studentName) {
-        try {
-            log.info("Attempting to create event for student: " + studentName);
-            final Event event = prepareAndSendEvent(sessionData, studentName);
-            log.info("Event created successfully for student: " + studentName);
-            return event.getHtmlLink();
-        } catch (Exception e) {
-            log.error("Failed to create event for email " + sessionData.getStudentEmail(), e);
-            return null;
-        }
+    private String bookSession(final SessionDataRequest sessionData, final String studentName)
+            throws Exception {
+        log.info("Attempting to create event for student: " + studentName);
+        final Event event = prepareAndSendEvent(sessionData, studentName);
+        log.info("Event created successfully for student: " + studentName);
+        return event.getHtmlLink();
     }
 
     private boolean isUsedTrialLessonByStudent(String studentEmail) {
@@ -139,7 +144,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Event prepareAndSendEvent(final SessionDataRequest sessionData, final String studentName)
-            throws GeneralSecurityException, IOException {
+            throws GeneralSecurityException, IOException, EmailNotFoundException {
         final Event event = buildEventWithMeet(sessionData, studentName);
         final NetHttpTransport httpTransport = newTrustedTransport();
         final Calendar calendar = buildCalendarService(httpTransport);
@@ -151,7 +156,8 @@ public class BookingServiceImpl implements BookingService {
                 .execute();
     }
 
-    private Event buildEventWithMeet(final SessionDataRequest sessionData, final String studentName) {
+    private Event buildEventWithMeet(final SessionDataRequest sessionData, final String studentName)
+            throws EmailNotFoundException {
         // TODO: Add the ability to book regular sessions by using ".setRecurrence"
         return new Event()
                 .setSummary("English with IELTSWise67")
@@ -178,10 +184,14 @@ public class BookingServiceImpl implements BookingService {
                 .setTimeZone("Europe/London");
     }
 
-    private List<EventAttendee> prepareEventAttendees(final SessionDataRequest sessionData) {
+    private List<EventAttendee> prepareEventAttendees(final SessionDataRequest sessionData)
+            throws EmailNotFoundException {
+
+        TutorInfo tutorInfo = tutorInfoRepository.findByEmail(sessionData.getTutorEmail())
+                .orElseThrow(() -> new EmailNotFoundException("Tutor", sessionData.getTutorEmail()));
         final EventAttendee[] attendees = new EventAttendee[]{
                 new EventAttendee().setEmail(sessionData.getStudentEmail()),
-                new EventAttendee().setEmail(sessionData.getTutorEmail()).setResource(true).setOrganizer(true),
+                new EventAttendee().setEmail(tutorInfo.getEmail()).setResource(true).setOrganizer(true)
         };
         return asList(attendees);
     }

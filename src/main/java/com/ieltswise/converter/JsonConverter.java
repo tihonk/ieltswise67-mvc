@@ -3,7 +3,7 @@ package com.ieltswise.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ieltswise.entity.schedule.TimeSlot;
+import com.ieltswise.dto.TimeSlot;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;

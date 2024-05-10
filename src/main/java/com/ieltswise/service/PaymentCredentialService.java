@@ -2,7 +2,7 @@ package com.ieltswise.service;
 
 import com.ieltswise.controller.request.PaymentCredentialsRequest;
 import com.ieltswise.entity.PaymentCredentials;
-import com.ieltswise.exception.TutorEmailNotFoundException;
+import com.ieltswise.exception.EmailNotFoundException;
 
 public interface PaymentCredentialService {
 
@@ -11,8 +11,8 @@ public interface PaymentCredentialService {
      *
      * @param paymentCredentialsRequest DTO with data on payment credentials
      * @return updated payment data
-     * @throws TutorEmailNotFoundException if the tutor's email is not found.
+     * @throws EmailNotFoundException if the tutor's email is not found.
      */
     PaymentCredentials updatePaymentInfo(PaymentCredentialsRequest paymentCredentialsRequest)
-            throws TutorEmailNotFoundException;
+            throws EmailNotFoundException;
 }

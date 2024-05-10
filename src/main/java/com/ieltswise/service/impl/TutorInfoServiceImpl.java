@@ -2,8 +2,8 @@ package com.ieltswise.service.impl;
 
 import com.ieltswise.controller.request.TutorCreateRequest;
 import com.ieltswise.entity.PaymentCredentials;
+import com.ieltswise.entity.Schedule;
 import com.ieltswise.entity.TutorInfo;
-import com.ieltswise.entity.schedule.Schedule;
 import com.ieltswise.exception.TutorCreationException;
 import com.ieltswise.mapper.TutorMapper;
 import com.ieltswise.repository.PaymentCredentialsRepository;
@@ -68,7 +68,7 @@ public class TutorInfoServiceImpl implements TutorInfoService {
             return tutorInfo;
         } catch (Exception e) {
             log.error("Error occurred while creating tutor", e);
-            throw new TutorCreationException();
+            throw new TutorCreationException(String.format("Failed to create tutor: %s", e.getMessage()));
         }
     }
 }

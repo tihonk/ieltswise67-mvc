@@ -2,7 +2,7 @@ package com.ieltswise.service.impl;
 
 import com.ieltswise.controller.request.PaymentCredentialsRequest;
 import com.ieltswise.entity.PaymentCredentials;
-import com.ieltswise.exception.TutorEmailNotFoundException;
+import com.ieltswise.exception.EmailNotFoundException;
 import com.ieltswise.mapper.PaymentCredentialsMapper;
 import com.ieltswise.repository.PaymentCredentialsRepository;
 import com.ieltswise.service.PaymentCredentialService;
@@ -24,7 +24,7 @@ public class PaymentCredentialServiceImpl implements PaymentCredentialService {
 
     @Override
     public PaymentCredentials updatePaymentInfo(PaymentCredentialsRequest paymentCredentialsRequest)
-            throws TutorEmailNotFoundException {
+            throws EmailNotFoundException {
         PaymentCredentials paymentCredentials = mapper.mapToPaymentCredentials(paymentCredentialsRequest);
         return paymentCredentialsRepository.save(paymentCredentials);
     }

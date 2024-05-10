@@ -2,7 +2,9 @@ package com.ieltswise.service.impl;
 
 import com.ieltswise.entity.PaymentCredentials;
 import com.ieltswise.entity.UserLessonData;
+import com.ieltswise.exception.EmailNotFoundException;
 import com.ieltswise.repository.PaymentCredentialsRepository;
+import com.ieltswise.repository.TutorInfoRepository;
 import com.ieltswise.repository.UserLessonDataRepository;
 import com.ieltswise.service.PayPalPaymentService;
 import com.paypal.api.payments.Amount;
@@ -34,29 +36,27 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
     private double lessonPrice;
     private final UserLessonDataRepository userLessonDataRepository;
     private final PaymentCredentialsRepository paymentCredentialsRepository;
+    private final TutorInfoRepository tutorInfoRepository;
 
     @Autowired
     public PayPalPaymentServiceImpl(UserLessonDataRepository userLessonDataRepository,
-                                    PaymentCredentialsRepository paymentCredentialsRepository) {
+                                    PaymentCredentialsRepository paymentCredentialsRepository,
+                                    TutorInfoRepository tutorInfoRepository) {
         this.userLessonDataRepository = userLessonDataRepository;
         this.paymentCredentialsRepository = paymentCredentialsRepository;
+        this.tutorInfoRepository = tutorInfoRepository;
     }
 
     @Override
     public String preparePaymentLink(final String successUrl, final String cancelUrl, final String tutorEmail,
-                                     final String studentEmail) {
-        try {
-            final Payment payment = createPayment(1, cancelUrl, successUrl, tutorEmail, studentEmail);
-            for (Links link : payment.getLinks()) {
-                if (link.getRel().equals("approval_url")) {
-                    return link.getHref();
-                }
+                                     final String studentEmail) throws EmailNotFoundException, PayPalRESTException {
+        final Payment payment = createPayment(1, cancelUrl, successUrl, tutorEmail, studentEmail);
+        for (Links link : payment.getLinks()) {
+            if (link.getRel().equals("approval_url")) {
+                return link.getHref();
             }
-        } catch (PayPalRESTException | NullPointerException e) {
-            log.error("Error while preparing payment link for tutor email: {}, student email: {}",
-                    tutorEmail, studentEmail, e);
         }
-        return null;
+        throw new IllegalStateException("Approval URL not found in payment links");
     }
 
     private APIContext getAPIContext(String email) {
@@ -71,7 +71,9 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
             String cancelUrl,
             String successUrl,
             String tutorEmail,
-            String studentEmail) throws PayPalRESTException {
+            String studentEmail) throws PayPalRESTException, EmailNotFoundException {
+
+        tutorInfoRepository.findByEmail(tutorEmail).orElseThrow(() -> new EmailNotFoundException("Tutor", tutorEmail));
 
         double total = calculateTotalPrice(quantity, studentEmail);
 
@@ -143,9 +145,11 @@ public class PayPalPaymentServiceImpl implements PayPalPaymentService {
         return executedPayment;
     }
 
-    private PaymentCredentials verifyPaymentNotCompleted(String paymentId, String tutorEmail) throws PayPalRESTException {
-        PaymentCredentials paymentCredentials = paymentCredentialsRepository.findByTutorEmail(tutorEmail).orElseThrow(() ->
-                new IllegalArgumentException(String.format("Payment credentials not found for tutorEmail: %s", tutorEmail)));
+    private PaymentCredentials verifyPaymentNotCompleted(String paymentId, String tutorEmail)
+            throws PayPalRESTException {
+        PaymentCredentials paymentCredentials = paymentCredentialsRepository.findByTutorEmail(tutorEmail)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("Payment credentials not found for tutorEmail: %s", tutorEmail)));
         if (paymentId.equals(paymentCredentials.getPaymentId())) {
             throw new PayPalRESTException("Payment has been done already for this cart.");
         }

@@ -1,8 +1,8 @@
 package com.ieltswise.service.impl;
 
-import com.ieltswise.entity.schedule.Schedule;
-import com.ieltswise.entity.schedule.TimeSlot;
-import com.ieltswise.exception.TutorEmailNotFoundException;
+import com.ieltswise.dto.TimeSlot;
+import com.ieltswise.entity.Schedule;
+import com.ieltswise.exception.EmailNotFoundException;
 import com.ieltswise.repository.ScheduleRepository;
 import com.ieltswise.service.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,21 +22,21 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public Schedule getSchedulesTutor(String email) throws TutorEmailNotFoundException {
+    public Schedule getSchedulesTutor(String email) throws EmailNotFoundException {
         return getScheduleByEmail(email);
     }
 
     @Override
     public Schedule updateSchedule(String email, Map<DayOfWeek, List<TimeSlot>> updatedTimeInfo)
-            throws TutorEmailNotFoundException {
+            throws EmailNotFoundException {
         Schedule existingSchedule = getScheduleByEmail(email);
         existingSchedule.setTimeInfo(updatedTimeInfo);
         return scheduleRepository.save(existingSchedule);
     }
 
-    private Schedule getScheduleByEmail(String email) throws TutorEmailNotFoundException {
+    private Schedule getScheduleByEmail(String email) throws EmailNotFoundException {
         return scheduleRepository.findScheduleByTutorEmail(email)
-                .orElseThrow(() -> new TutorEmailNotFoundException(
+                .orElseThrow(() -> new EmailNotFoundException(
                         String.format("Schedule for tutor with email %s not found", email)));
     }
 }

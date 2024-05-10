@@ -1,13 +1,14 @@
 package com.ieltswise.service.impl;
 
-import com.ieltswise.entity.FreeAndBusyHoursOfTheDay;
-import com.ieltswise.entity.schedule.TimeSlot;
+import com.ieltswise.dto.FreeAndBusyHoursOfTheDay;
+import com.ieltswise.dto.TimeSlot;
 import com.ieltswise.service.ScheduleService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,9 +40,11 @@ import static util.JsonDataReader.loadScheduleFromFile;
 @ExtendWith(MockitoExtension.class)
 public class GoogleEventsServiceImplTest {
 
+    @InjectMocks
+    private GoogleEventsServiceImpl googleEventsService;
     @Mock
     private ScheduleService scheduleService;
-    private GoogleEventsServiceImpl googleEventsService;
+
     private Method method;
     private JSONArray jsonArray;
     private ZonedDateTime startOfMonth;
@@ -50,7 +53,6 @@ public class GoogleEventsServiceImplTest {
 
     @BeforeEach
     void setUp() throws NoSuchMethodException {
-        googleEventsService = new GoogleEventsServiceImpl(scheduleService);
 
         method = GoogleEventsServiceImpl.class.getDeclaredMethod("findAllEventsByYearAndMonth",
                 JSONArray.class, ZonedDateTime.class, ZonedDateTime.class, Map.class);
@@ -60,7 +62,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_WhenNoEvents()
+    public void testFindAllEventsByYearAndMonthWhenNoEvents()
             throws InvocationTargetException, IllegalAccessException {
 
         // Given
@@ -79,7 +81,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_GmtPlus3_FreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtPlus3AndFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -99,7 +101,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_GmtPlus3_NotFreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtPlus3AndNotFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -119,7 +121,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_Gmt_FreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtAndFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -140,7 +142,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_Gmt_NotFreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtAndNotFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -161,7 +163,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_GmtMinus4_FreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtMinus4AndFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
@@ -182,7 +184,7 @@ public class GoogleEventsServiceImplTest {
     }
 
     @Test
-    public void FindAllEventsByYearAndMonth_GmtMinus4_NotFreeSchedule()
+    public void testFindAllEventsByYearAndMonthWhenGmtMinus4AndNotFreeSchedule()
             throws InvocationTargetException, IllegalAccessException, JSONException {
 
         // Given
