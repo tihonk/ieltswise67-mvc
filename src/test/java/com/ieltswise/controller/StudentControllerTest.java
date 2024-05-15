@@ -1,6 +1,7 @@
 package com.ieltswise.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ieltswise.controller.impl.StudentControllerImpl;
 import com.ieltswise.controller.request.RegularSessionDataRequest;
 import com.ieltswise.controller.request.SessionDataRequest;
 import com.ieltswise.controller.response.SessionDataResponse;
@@ -27,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(StudentController.class)
+@WebMvcTest(StudentControllerImpl.class)
 public class StudentControllerTest {
 
     @Autowired

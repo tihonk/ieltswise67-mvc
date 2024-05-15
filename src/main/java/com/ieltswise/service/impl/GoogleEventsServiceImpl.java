@@ -3,6 +3,7 @@ package com.ieltswise.service.impl;
 import com.ieltswise.controller.response.Event;
 import com.ieltswise.dto.FreeAndBusyHoursOfTheDay;
 import com.ieltswise.dto.TimeSlot;
+import com.ieltswise.dto.TimeStatus;
 import com.ieltswise.enums.Status;
 import com.ieltswise.exception.EmailNotFoundException;
 import com.ieltswise.exception.EventFetchingException;
@@ -33,7 +34,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -320,9 +320,9 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
 
         FreeAndBusyHoursOfTheDay eventsOfDay;
 
-        List<Map<String, Object>> informationAboutAllHoursOfTheDay;
+        List<TimeStatus> informationAboutAllHoursOfTheDay;
 
-        Map<String, Object> hourStatus;
+        TimeStatus hourStatus;
 
         for (Map.Entry<Long, TreeMap<Long, Status>> entry1 : dateClockStatus.entrySet()) {
             Long dateKey = entry1.getKey();
@@ -331,9 +331,9 @@ public class GoogleEventsServiceImpl implements GoogleEventsService {
             for (Map.Entry<Long, Status> entry2 : hoursAndTheirStatus.entrySet()) {
                 Long hourKey = entry2.getKey();
                 Status status = entry2.getValue();
-                hourStatus = new HashMap<>();
-                hourStatus.put("time", hourKey);
-                hourStatus.put("status", status);
+                hourStatus = new TimeStatus();
+                hourStatus.setTime(hourKey);
+                hourStatus.setStatus(status);
                 informationAboutAllHoursOfTheDay.add(hourStatus);
             }
             eventsOfDay = new FreeAndBusyHoursOfTheDay();

@@ -2,76 +2,194 @@ package com.ieltswise.controller;
 
 import com.ieltswise.controller.request.RegularSessionDataRequest;
 import com.ieltswise.controller.request.SessionDataRequest;
+import com.ieltswise.controller.response.ErrorMessage;
 import com.ieltswise.controller.response.SessionDataResponse;
 import com.ieltswise.exception.EmailNotFoundException;
-import com.ieltswise.service.BookingService;
-import com.ieltswise.service.PayPalPaymentService;
-import com.paypal.api.payments.Payment;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+@Tag(name = "student controller")
+public interface StudentController {
 
-@RestController
-@RequestMapping("/student")
-public class StudentController {
+    @Operation(
+            summary = "Book a trial lesson",
+            description = "Allows a student to book a trial lesson with a selected tutor for a specified time",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "The invitation is sent to the student and the teacher at their email",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SessionDataResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid data format",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "The tutor with the specified email address is not registered",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "409",
+                            description = "You have already used the trial lesson",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<SessionDataResponse> bookTrialSession(@Valid SessionDataRequest sessionDataRequest) throws Exception;
 
-    private final BookingService calendarMailService;
-    private final PayPalPaymentService payPalService;
+    @Operation(
+            summary = "Book a regular lesson",
+            description = "Allows the student to sign up for a regular lesson, while payment must be made",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = """
+                                    The transaction is completed, the funds are debited, and the lessons are booked""",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = SessionDataResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid data format",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "No available lessons were found for this student",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = """
+                                    The student or tutor with the specified email address is not registered or the\s
+                                    payment has not been approved""",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<SessionDataResponse> bookRegularSession(@Valid RegularSessionDataRequest regularSessionDataRequest)
+            throws Exception;
 
-    @Value("${google.email.tutor}")
-    private String tutorEmail;
+    @Operation(
+            summary = "Get user lesson count",
+            description = "Extracts the number of available lessons for the user based on the email address",
+            parameters = @Parameter(
+                    name = "email",
+                    in = ParameterIn.PATH,
+                    required = true,
+                    description = "Email of the student",
+                    schema = @Schema(
+                            type = "string",
+                            format = "email",
+                            example = "bestStudent001@gmail.com"
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Return the number of user lessons available",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(
+                                            type = "object",
+                                            example = "{\"Number of lessons available\": 5}"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "The user with the specified email address is not registered",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<String> getUserLessonCount(String email) throws EmailNotFoundException;
 
-    @Autowired
-    StudentController(BookingService calendarMailService,
-                      PayPalPaymentService payPalService) {
-        this.calendarMailService = calendarMailService;
-        this.payPalService = payPalService;
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping(value = "/bookTrialSession", consumes = {APPLICATION_JSON_VALUE})
-    public ResponseEntity<SessionDataResponse> bookTrialSession(@RequestBody @Valid SessionDataRequest sessionData)
-            throws Exception {
-        return ResponseEntity.ok(calendarMailService.bookTrialSession(sessionData));
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping(value = "/bookRegularSession", consumes = {APPLICATION_JSON_VALUE})
-    public ResponseEntity<SessionDataResponse> bookRegularSession(
-            @RequestBody @Valid RegularSessionDataRequest regularSessionDataRequest) throws Exception {
-        // TODO: Change tutorEmail to value from sessionData
-        final Payment payment = payPalService.executePayment(regularSessionDataRequest.getPaymentId(),
-                regularSessionDataRequest.getPayerID(), tutorEmail);
-        if (payment.getState().equals("approved")) {
-            return ResponseEntity.ok(calendarMailService.bookRegularSession(regularSessionDataRequest));
-        } else {
-            return ResponseEntity.status(BAD_REQUEST).build();
-        }
-    }
-
-    @GetMapping("/lessonCount/{email}")
-    public ResponseEntity<String> getUserLessonCount(@PathVariable("email") String email)
-            throws EmailNotFoundException {
-        int lessonCount = calendarMailService.getNumberOfAvailableLessons(email);
-        JSONObject jsonResponse = new JSONObject().put("Number of lessons available: ", lessonCount);
-        return ResponseEntity.ok(jsonResponse.toString());
-    }
-
-    @CrossOrigin(origins = "*")
-    @GetMapping("/trialavailability/{studentEmail}")
-    public ResponseEntity<Boolean> isTrialAvailable(@PathVariable String studentEmail) {
-        return ResponseEntity.ok(calendarMailService.isTrialAvailable(studentEmail));
-    }
+    @Operation(
+            summary = "Check trial lesson availability",
+            description = "Determines the availability of a trial lesson for a student",
+            parameters = @Parameter(
+                    name = "studentEmail",
+                    in = ParameterIn.PATH,
+                    required = true,
+                    description = "Email of the student",
+                    schema = @Schema(
+                            type = "string",
+                            format = "email",
+                            example = "bestStudent001@gmail.com"
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Returns whether trial lesson is available or not (true or false)",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Boolean.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<Boolean> isTrialAvailable(String studentEmail);
 }

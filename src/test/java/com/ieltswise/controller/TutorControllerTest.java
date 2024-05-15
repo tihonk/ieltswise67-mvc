@@ -1,12 +1,14 @@
 package com.ieltswise.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ieltswise.controller.impl.TutorControllerImpl;
 import com.ieltswise.controller.request.PaymentCredentialsRequest;
 import com.ieltswise.controller.request.ScheduleUpdateRequest;
 import com.ieltswise.controller.request.TutorCreateRequest;
 import com.ieltswise.controller.response.Event;
 import com.ieltswise.dto.FreeAndBusyHoursOfTheDay;
 import com.ieltswise.dto.TimeSlot;
+import com.ieltswise.dto.TimeStatus;
 import com.ieltswise.entity.PaymentCredentials;
 import com.ieltswise.entity.Schedule;
 import com.ieltswise.entity.TutorInfo;
@@ -45,7 +47,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(TutorController.class)
+@WebMvcTest(TutorControllerImpl.class)
 public class TutorControllerTest {
 
     @Autowired
@@ -104,11 +106,11 @@ public class TutorControllerTest {
     public void testGetEventsByYearAndMonthReturnFreeAndBusyHoursOfTheDayList() throws Exception {
 
         // Given
-        Map<String, Object> hourStatus = new HashMap<>();
-        hourStatus.put("time", 1722470400000L);
-        hourStatus.put("status", AVAILABLE.name());
+        TimeStatus hourStatus = new TimeStatus();
+        hourStatus.setTime(1722470400000L);
+        hourStatus.setStatus(AVAILABLE);
 
-        List<Map<String, Object>> time = Collections.singletonList(hourStatus);
+        List<TimeStatus> time = Collections.singletonList(hourStatus);
 
         FreeAndBusyHoursOfTheDay freeAndBusyHoursOfTheDay = FreeAndBusyHoursOfTheDay.builder()
                 .date(1722470400000L)

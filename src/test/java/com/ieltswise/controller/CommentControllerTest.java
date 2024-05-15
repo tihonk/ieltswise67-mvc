@@ -1,6 +1,7 @@
 package com.ieltswise.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ieltswise.controller.impl.CommentControllerImpl;
 import com.ieltswise.controller.request.StudentCommentRequest;
 import com.ieltswise.entity.StudentComment;
 import com.ieltswise.exception.EmailNotFoundException;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(CommentController.class)
+@WebMvcTest(CommentControllerImpl.class)
 public class CommentControllerTest {
 
     @Autowired
