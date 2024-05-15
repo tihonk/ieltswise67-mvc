@@ -1,5 +1,6 @@
 package com.ieltswise.dto;
 
+import com.ieltswise.enums.Status;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,26 +8,26 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Schema(
-        title = "Time slot",
-        description = "Represents a time slot"
+        title = "Time status",
+        description = "Represents a time status"
 )
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TimeSlot {
+public class TimeStatus {
 
     @Schema(
             requiredMode = Schema.RequiredMode.REQUIRED,
             description = "Time",
-            example = "12.00"
+            example = "1735689600000"
     )
-    private String time;
+    private Long time;
 
     @Schema(
             requiredMode = Schema.RequiredMode.REQUIRED,
-            description = "Indicates whether this time slot is engaged or available",
-            example = "true"
+            description = "Indicates the time status",
+            example = "AVAILABLE"
     )
-    private boolean engaged;
+    private Status status;
 }

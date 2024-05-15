@@ -1,46 +1,91 @@
 package com.ieltswise.controller;
 
 import com.ieltswise.controller.request.StudentCommentRequest;
+import com.ieltswise.controller.response.ErrorMessage;
 import com.ieltswise.entity.StudentComment;
 import com.ieltswise.exception.EmailNotFoundException;
+import com.ieltswise.exception.NoAvailableLessonsException;
 import com.ieltswise.exception.NoPurchasedLessonsException;
-import com.ieltswise.service.CommentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/comments")
-public class CommentController {
+@Tag(name = "comment controller")
+public interface CommentController {
 
-    private final CommentService commentService;
+    @Operation(
+            summary = "Get all the student comments",
+            description = "The method processes GET requests to get a list of all comments",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Student comments have been successfully uploaded",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = StudentComment.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<List<StudentComment>> getAllComments();
 
-    @Autowired
-    public CommentController(CommentService commentService) {
-        this.commentService = commentService;
-    }
-
-    @CrossOrigin(origins = "*")
-    @GetMapping
-    ResponseEntity<List<StudentComment>> getAllComments() {
-        List<StudentComment> comments = commentService.getAllComments();
-        return ResponseEntity.ok(comments);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping()
-    ResponseEntity<StudentComment> createComment(@RequestBody @Valid StudentCommentRequest studentCommentRequest)
-            throws EmailNotFoundException, NoPurchasedLessonsException {
-        StudentComment comment = commentService.createComment(studentCommentRequest);
-        return new ResponseEntity<>(comment, HttpStatus.CREATED);
-    }
+    @Operation(
+            summary = "Create a new comment",
+            description = "With this endpoint, a user who has bought at least 1 lesson can leave a comment",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "The comment was created successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = StudentComment.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid data format",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "User has not purchased any lessons",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "The user with the specified email address is not registered",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<StudentComment> createComment(@Valid StudentCommentRequest studentCommentRequest)
+            throws EmailNotFoundException, NoAvailableLessonsException, NoPurchasedLessonsException;
 }

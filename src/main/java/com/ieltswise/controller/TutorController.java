@@ -3,6 +3,7 @@ package com.ieltswise.controller;
 import com.ieltswise.controller.request.PaymentCredentialsRequest;
 import com.ieltswise.controller.request.ScheduleUpdateRequest;
 import com.ieltswise.controller.request.TutorCreateRequest;
+import com.ieltswise.controller.response.ErrorMessage;
 import com.ieltswise.controller.response.Event;
 import com.ieltswise.dto.FreeAndBusyHoursOfTheDay;
 import com.ieltswise.entity.PaymentCredentials;
@@ -11,90 +12,291 @@ import com.ieltswise.entity.TutorInfo;
 import com.ieltswise.exception.EmailNotFoundException;
 import com.ieltswise.exception.EventFetchingException;
 import com.ieltswise.exception.TutorCreationException;
-import com.ieltswise.service.GoogleEventsService;
-import com.ieltswise.service.PaymentCredentialService;
-import com.ieltswise.service.ScheduleService;
-import com.ieltswise.service.TutorInfoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static java.time.ZonedDateTime.now;
+@Tag(name = "tutor controller")
+public interface TutorController {
 
-@RestController
-@RequestMapping("/tutor")
-public class TutorController {
+    @Operation(
+            summary = "Get future scheduled events",
+            description = "Returns all future scheduled events for the selected teacher",
+            parameters = @Parameter(
+                    name = "tutorId",
+                    in = ParameterIn.PATH,
+                    required = true,
+                    description = "Tutor email, with pre-open access to the calendar",
+                    schema = @Schema(
+                            type = "string",
+                            format = "email",
+                            example = "test.tutor1.ieltswise67@gmail.com"
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Returns all future scheduled events for the selected teacher",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = Event.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = """
+                                    The tutor with the specified email address is not registered or an exception\s
+                                    occurred when receiving events from the tutor's calendar""",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    )
+            }
+    )
+    ResponseEntity<List<Event>> getEvents(String tutorId) throws EmailNotFoundException, EventFetchingException;
 
-    private final GoogleEventsService googleEventsService;
-    private final TutorInfoService tutorInfoService;
-    private final ScheduleService scheduleService;
-    private final PaymentCredentialService paymentCredentialService;
+    @Operation(
+            summary = "Get available time with a tutor for a specific month",
+            description = """
+                    This endpoint retrieves a list of available time slots with a tutor for the specified month.
+                    The available time slots represent the hours during which the tutor is free to conduct sessions.
+                    The response includes information about the availability of the tutor for each day of the\s
+                    requested month, with each day segmented into hourly intervals.""",
+            parameters = {
+                    @Parameter(
+                            name = "tutorId",
+                            in = ParameterIn.PATH,
+                            required = true,
+                            description = "Tutor email, with pre-open access to the calendar",
+                            schema = @Schema(
+                                    type = "string",
+                                    format = "email",
+                                    example = "test.tutor1.ieltswise67@gmail.com"
+                            )
+                    ),
+                    @Parameter(
+                            name = "year",
+                            in = ParameterIn.PATH,
+                            required = true,
+                            description = "Year",
+                            schema = @Schema(
+                                    type = "integer",
+                                    example = "2024"
+                            )
+                    ),
+                    @Parameter(
+                            name = "month",
+                            in = ParameterIn.PATH,
+                            required = true,
+                            description = "Number from 1 to 12",
+                            schema = @Schema(
+                                    type = "integer",
+                                    example = "8"
+                            )
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = """
+                                    Returns a list of available time with a tutor for the requested month with an\s
+                                    interval of 1 hour""",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation =
+                                            FreeAndBusyHoursOfTheDay.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = """
+                                    The tutor with the specified email address is not registered or an exception occurred when\s
+                                    receiving events from the tutor's calendar""",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    )
+            }
+    )
+    ResponseEntity<List<FreeAndBusyHoursOfTheDay>> getEventsByYearAndMonth(String tutorId, int year, int month)
+            throws EmailNotFoundException, EventFetchingException;
 
-    @Autowired
-    TutorController(GoogleEventsService googleEventsService,
-                    TutorInfoService tutorInfoService,
-                    ScheduleService scheduleService,
-                    PaymentCredentialService paymentCredentialService) {
-        this.googleEventsService = googleEventsService;
-        this.tutorInfoService = tutorInfoService;
-        this.scheduleService = scheduleService;
-        this.paymentCredentialService = paymentCredentialService;
-    }
+    @Operation(
+            summary = "Create a tutor",
+            description = """
+                    Using this endpoint, a new teacher is created in the system based on information from the object\s
+                    TutorCreateRequest""",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "The tutor has been successfully created",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = TutorInfo.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "The tutor with the specified email address is not registered",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Failed to create tutor",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<TutorInfo> createTutor(@Valid TutorCreateRequest tutorCreateRequest) throws TutorCreationException;
 
-    @CrossOrigin(origins = "*")
-    @GetMapping("/events/{tutorId}")
-    public ResponseEntity<List<Event>> getEvents(@PathVariable String tutorId)
-            throws EmailNotFoundException, EventFetchingException {
-        final List<Event> events = googleEventsService.getEvents(tutorId);
-        final List<Event> futureEvents = events.stream().filter(ev -> ev.getEndDate().isAfter(now())).toList();
-        return ResponseEntity.ok(futureEvents);
-    }
+    @Operation(
+            summary = "Get a tutor's schedule",
+            description = "The endpoint for getting the tutor's schedule at his email address",
+            parameters = @Parameter(
+                    name = "tutorId",
+                    in = ParameterIn.PATH,
+                    required = true,
+                    description = "Tutor email",
+                    schema = @Schema(
+                            type = "string",
+                            format = "email",
+                            example = "test.tutor1.ieltswise67@gmail.com"
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = """
+                                    Returns the tutor's schedule as a list of days of the week, indicating the hours\s
+                                    and their employment status""",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Schedule.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "The tutor with the specified email address is not registered",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<Schedule> schedule(String tutorId) throws EmailNotFoundException;
 
-    @CrossOrigin(origins = "*")
-    @GetMapping("/events/{tutorId}/{year}/{month}")
-    public ResponseEntity<List<FreeAndBusyHoursOfTheDay>> getEventsByYearAndMonth(@PathVariable String tutorId,
-                                                                                  @PathVariable int year,
-                                                                                  @PathVariable int month)
-            throws EmailNotFoundException, EventFetchingException {
-        return ResponseEntity.ok(googleEventsService.getEventsByYearAndMonth(tutorId, year, month));
-    }
+    @Operation(
+            summary = "Update the tutor's schedule",
+            description = "The endpoint for updating the schedule for the tutor",
+            parameters = @Parameter(
+                    name = "tutorId",
+                    in = ParameterIn.PATH,
+                    required = true,
+                    description = "Tutor email",
+                    schema = @Schema(
+                            type = "string",
+                            format = "email",
+                            example = "test.tutor1.ieltswise67@gmail.com"
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "The tutor's schedule has been updated successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Schedule.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "The tutor with the specified email address is not registered",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<Schedule> updateSchedule(String tutorId, @Valid ScheduleUpdateRequest scheduleUpdateRequest)
+            throws EmailNotFoundException;
 
-    @PostMapping()
-    public ResponseEntity<TutorInfo> createTutor(@RequestBody @Valid TutorCreateRequest tutorCreateRequest)
-            throws TutorCreationException {
-        TutorInfo createdTutor = tutorInfoService.createTutor(tutorCreateRequest);
-        return new ResponseEntity<>(createdTutor, HttpStatus.CREATED);
-    }
-
-    @GetMapping("/schedule/{tutorId}")
-    public ResponseEntity<Schedule> schedule(@PathVariable String tutorId) throws EmailNotFoundException {
-        Schedule schedule = scheduleService.getSchedulesTutor(tutorId);
-        return ResponseEntity.ok(schedule);
-    }
-
-    @PutMapping("/schedule/{tutorId}")
-    public ResponseEntity<Schedule> updateSchedule(@PathVariable String tutorId,
-                                                   @RequestBody @Valid ScheduleUpdateRequest scheduleUpdateRequest)
-            throws EmailNotFoundException {
-        Schedule schedule = scheduleService.updateSchedule(tutorId, scheduleUpdateRequest.getUpdatedTimeInfo());
-        return ResponseEntity.ok(schedule);
-    }
-
-    @PutMapping("/payment")
-    public ResponseEntity<PaymentCredentials> updatePaymentInformation(
-            @RequestBody @Valid PaymentCredentialsRequest paymentCredentialsRequest) throws EmailNotFoundException {
-        PaymentCredentials paymentCredentials = paymentCredentialService.updatePaymentInfo(paymentCredentialsRequest);
-        return ResponseEntity.ok(paymentCredentials);
-    }
+    @Operation(
+            summary = "Update payment information",
+            description = "The endpoint for updating information about the teacher's payment details",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "The payment information has been successfully updated",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = PaymentCredentials.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "The tutor with the specified email address is not registered",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal Server Error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            }
+    )
+    ResponseEntity<PaymentCredentials> updatePaymentInformation(
+            @Valid PaymentCredentialsRequest paymentCredentialsRequest) throws EmailNotFoundException;
 }

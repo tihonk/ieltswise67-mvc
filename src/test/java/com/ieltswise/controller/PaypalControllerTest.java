@@ -1,5 +1,6 @@
 package com.ieltswise.controller;
 
+import com.ieltswise.controller.impl.PaypalControllerImpl;
 import com.ieltswise.exception.EmailNotFoundException;
 import com.ieltswise.service.PayPalPaymentService;
 import com.paypal.base.rest.PayPalRESTException;
@@ -18,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(PaypalController.class)
+@WebMvcTest(PaypalControllerImpl.class)
 public class PaypalControllerTest {
 
     @Autowired

@@ -1,45 +1,122 @@
 package com.ieltswise.controller;
 
+import com.ieltswise.controller.response.ErrorMessage;
 import com.ieltswise.exception.EmailNotFoundException;
-import com.ieltswise.service.PayPalPaymentService;
 import com.paypal.base.rest.PayPalRESTException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequestMapping("/payment")
-public class PaypalController {
+@Tag(name = "paypal controller")
+public interface PaypalController {
 
-    private final PayPalPaymentService payPalService;
+    @Operation(
+            summary = "Get payment link",
+            description = "A payment link is being prepared at this endpoint.",
+            parameters = {
+                    @Parameter(
+                            name = "successUrl",
+                            in = ParameterIn.QUERY,
+                            required = true,
+                            description = "Redirect URL in case of successful payment",
+                            schema = @Schema(
+                                    type = "string",
+                                    format = "url",
+                                    example = "http://localhost:8080/payment/success"
+                            )
+                    ),
+                    @Parameter(
+                            name = "cancelUrl",
+                            in = ParameterIn.QUERY,
+                            required = true,
+                            description = "Redirect URL in case of cancellation payment",
+                            schema = @Schema(
+                                    type = "string",
+                                    format = "url",
+                                    example = "http://localhost:8080/payment/cancel"
+                            )
+                    ),
+                    @Parameter(
+                            name = "studentEmail",
+                            in = ParameterIn.QUERY,
+                            required = true,
+                            description = "Email of the student the lesson is planned",
+                            schema = @Schema(
+                                    type = "string",
+                                    format = "email",
+                                    example = "bestStudent001@gmail.com"
+                            )
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "The payment link was successfully received",
+                            content = @Content(
+                                    mediaType = "text/plain",
+                                    schema = @Schema(
+                                            type = "string",
+                                            format = "url",
+                                            example = "https://ieltswise.vercel.app/?paymentId=PAYID-MWWSJ4I8N178399" +
+                                                    "DR650864Y&token=EC-11Y67263SC580704L&PayerID=L984M7GB226JW"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "The tutor with the specified email address is not registered",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Failed to create payment link",
+                            content = @Content(
+                                    mediaType = "text/plain",
+                                    schema = @Schema(
+                                            type = "string",
+                                            example = "Failed to create payment link"
+                                    )
+                            )
+                    )
+            }
+    )
+    ResponseEntity<String> getPaymentLink(String successUrl, String cancelUrl, String studentEmail
+//                                        TODO:
+//                                        @RequestParam("tutorEmail") String tutorEmail,
+    ) throws EmailNotFoundException, PayPalRESTException;
 
-    @Value("${google.email.tutor}")
-    private String tutorEmail;
-
-    @Autowired
-    public PaypalController(PayPalPaymentService payPalService) {
-        this.payPalService = payPalService;
-    }
-
-    @CrossOrigin(origins = "*")
-    @GetMapping("/paymentLink")
-    public ResponseEntity<String> getPaymentLink(@RequestParam("successUrl") String successUrl,
-                                                 @RequestParam("cancelUrl") String cancelUrl,
-                                                 // TODO:
-                                                 //@RequestParam("tutorEmail") String tutorEmail,
-                                                 @RequestParam("studentEmail") String studentEmail)
-            throws EmailNotFoundException, PayPalRESTException {
-        final String paymentLink = payPalService.preparePaymentLink(successUrl, cancelUrl, tutorEmail, studentEmail);
-        return ResponseEntity.ok(paymentLink);
-    }
-
-    @GetMapping("/cancel")
-    public ResponseEntity<String> cancelPay() {
-        return ResponseEntity.ok("Cancellation of payment");
-    }
+    @Operation(
+            summary = "Cancel payment",
+            description = "Returns a message about the cancellation of the payment",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Payment cancellation successful",
+                            content = @Content(
+                                    mediaType = "text/plain",
+                                    schema = @Schema(
+                                            type = "string",
+                                            example = "Cancellation of payment"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Internal server error",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorMessage.class)
+                            )
+                    )
+            }
+    )
+    ResponseEntity<String> cancelPay();
 }

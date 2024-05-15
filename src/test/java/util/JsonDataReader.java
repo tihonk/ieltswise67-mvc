@@ -4,14 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ieltswise.dto.FreeAndBusyHoursOfTheDay;
 import com.ieltswise.dto.TimeSlot;
-import com.ieltswise.enums.Status;
 import org.json.JSONArray;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -21,18 +19,10 @@ public class JsonDataReader {
 
     public static List<FreeAndBusyHoursOfTheDay> loadFreeAndBusyHoursFromFile(String filePath) {
         objectMapper = new ObjectMapper();
+        TypeReference<List<FreeAndBusyHoursOfTheDay>> typeReference = new TypeReference<>() {};
         List<FreeAndBusyHoursOfTheDay> freeAndBusyHoursList = new ArrayList<>();
         try {
-            FreeAndBusyHoursOfTheDay[] array = objectMapper.readValue(new File(filePath),
-                    FreeAndBusyHoursOfTheDay[].class);
-            for (FreeAndBusyHoursOfTheDay day : array) {
-                for (Map<String, Object> time : day.getTime()) {
-                    String statusString = (String) time.get("status");
-                    Status status = Status.valueOf(statusString);
-                    time.put("status", status);
-                }
-            }
-            freeAndBusyHoursList.addAll(Arrays.asList(array));
+            freeAndBusyHoursList = objectMapper.readValue(new File(filePath), typeReference);
         } catch (IOException e) {
             e.printStackTrace();
         }
